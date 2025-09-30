@@ -95,7 +95,7 @@
         }
         
         /* Estilos do Modal de Auditoria */
-        #audit-modal-content {
+        #audit-modal-content, #history-details-modal-content {
             max-height: 90vh;
         }
         .pallet-circle {
@@ -115,6 +115,21 @@
             color: #1f2937;
             border-color: #db2777; /* pink-600 */
         }
+        /* Estilos para os círculos de contagem no histórico */
+        .count-circle {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.875rem;
+            color: #1f2937;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .count-circle.white { background-color: #ffffff; border: 2px solid #9ca3af; }
+        .count-circle.pink { background-color: #f472b6; border: 2px solid #db2777; }
+        .count-circle.yellow { background-color: #facc15; border: 2px solid #ca8a04; }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-300">
@@ -147,7 +162,7 @@
                 </div>
                 <!-- Formulário de Cadastro -->
                 <div id="register-form-container" class="hidden">
-                     <h2 class="text-3xl font-bold text-center text-white">Criar Conta</h2>
+                    <h2 class="text-3xl font-bold text-center text-white">Criar Conta</h2>
                     <form id="register-form" class="mt-6 space-y-4">
                         <div>
                             <label for="register-name" class="text-sm font-medium text-slate-400">Nome</label>
@@ -481,7 +496,7 @@
                                 <div class="relative h-80"><canvas id="activityByWeekdayChart"></canvas></div>
                             </div>
                         </div>
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                              <div class="bg-slate-900/50 p-6 rounded-xl border border-slate-700">
                                 <h3 class="text-xl font-semibold mb-2 text-white">Top 5 Lojas (Carregamento)</h3>
                                 <p class="text-sm text-slate-400 mb-4">Lojas que mais recebem entregas.</p>
@@ -570,6 +585,24 @@
              <!-- Rodapé do Modal -->
             <div class="p-4 border-t border-slate-700 flex justify-end">
                 <button id="finalize-audit-btn" class="bg-green-600/80 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-600">Finalizar Auditoria e Registrar Saída</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOVO: Modal de Detalhes do Histórico -->
+    <div id="history-details-modal" class="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm flex items-center justify-center hidden z-40 p-4">
+        <div id="history-details-modal-content" class="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-4xl flex flex-col fade-in overflow-hidden">
+            <!-- Cabeçalho do Modal -->
+            <div class="flex justify-between items-center p-4 border-b border-slate-700 flex-shrink-0">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Detalhes da Auditoria Finalizada</h2>
+                    <div id="history-modal-header" class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-400 mt-1"></div>
+                </div>
+                <button onclick="closeHistoryDetailsModal()" class="text-slate-400 hover:text-white text-3xl leading-none">&times;</button>
+            </div>
+            <!-- Corpo do Modal -->
+            <div id="history-modal-body" class="p-6 overflow-y-auto space-y-6">
+                <!-- Conteúdo será inserido dinamicamente aqui -->
             </div>
         </div>
     </div>
@@ -930,8 +963,8 @@
                 storesCurrentPage = 1; 
                 renderStoresPage();
             }, (error) => {
-                 console.error("Erro ao escutar lojas:", error);
-                 showStatusMessage("Não foi possível carregar as lojas. Verifique a configuração e as regras.", "error");
+                console.error("Erro ao escutar lojas:", error);
+                showStatusMessage("Não foi possível carregar as lojas. Verifique a configuração e as regras.", "error");
             });
         }
         
@@ -1053,6 +1086,17 @@
                 });
                 vehicleHistoryCurrentPage = 1;
                 renderVehicleHistoryPage();
+                
+                // ATUALIZAÇÃO: Se um modal de auditoria estiver aberto, atualiza o grid
+                const openAuditModal = document.getElementById('audit-modal');
+                if (!openAuditModal.classList.contains('hidden')) {
+                    const entryId = openAuditModal.dataset.entryId;
+                    const updatedEntry = allEntriesCache.find(e => e.id === entryId);
+                    if(updatedEntry) {
+                        renderPalletGrid(updatedEntry);
+                    }
+                }
+
             }, (error) => {
                 console.error("Erro ao escutar registros:", error);
                 showStatusMessage("Não foi possível carregar os registros.", "error");
@@ -1118,7 +1162,7 @@
                     </div>
                     <div class="text-right">
                         <span class="px-2 py-1 text-xs font-semibold text-yellow-200 bg-yellow-500/20 rounded-full">EM AUDITORIA</span>
-                        <p class="text-sm text-slate-400 mt-2">${entry.paletes.length} palete(s) auditado(s)</p>
+                        <p class="text-sm text-slate-400 mt-2">${(entry.paletes || []).length} palete(s) auditado(s)</p>
                     </div>
                 </div>`;
             activeListEl.appendChild(entryDiv);
@@ -1127,11 +1171,19 @@
         function renderHistoryEntry(entry) {
             const historyListEl = document.getElementById('history-entries-list');
             const card = document.createElement('div');
-            card.className = 'card bg-slate-800/50 border border-slate-700 rounded-lg p-4 flex flex-col justify-between space-y-3 fade-in';
-            
+            // MODIFICADO: Adicionado onclick para abrir o novo modal de detalhes
+            card.className = 'card bg-slate-800/50 border border-slate-700 rounded-lg p-4 flex flex-col justify-between space-y-3 fade-in cursor-pointer';
+            card.setAttribute('onclick', `showHistoryDetailsModal('${entry.id}')`);
+
+            // NOVO: Calcula a contagem de paletes por tipo
+            const paletes = entry.paletes || [];
+            const comumCount = paletes.filter(p => !p.temJuncao && p.tipo === 'comum').length;
+            const juncaoCount = paletes.filter(p => p.temJuncao).length;
+            const amareloCount = paletes.filter(p => !p.temJuncao && p.tipo === 'amarelo').length;
+
             let storesHtml = '';
             if (Array.isArray(entry.lojas) && entry.lojas.length > 0) {
-                if (entry.lojas.length > 1) {
+                 if (entry.lojas.length > 1) {
                     const collapsedView = `
                         <div>
                             <p class="font-semibold text-slate-200">${entry.lojas[0].nomeFantasia} (#${entry.lojas[0].numero})</p>
@@ -1160,6 +1212,12 @@
                 <div>
                     <div class="flex justify-between items-start">
                         <span class="px-2 py-1 text-xs font-semibold text-cyan-200 bg-cyan-500/20 rounded-full">${entry.placa.toUpperCase() || 'N/A'}</span>
+                        <!-- NOVO: Círculos de contagem de paletes -->
+                        <div class="flex items-center gap-2">
+                            <div class="count-circle white" title="Paletes Comuns">${comumCount}</div>
+                            <div class="count-circle pink" title="Junções">${juncaoCount}</div>
+                            <div class="count-circle yellow" title="Paletes Amarelos">${amareloCount}</div>
+                        </div>
                     </div>
                     <div class="mt-3 space-y-2">
                         ${storesHtml}
@@ -1216,9 +1274,10 @@
             gridEl.innerHTML = '';
 
             const capacity = vehicleTypeConfig[entry.tipoVeiculo]?.capacity || 0;
+            const paletes = entry.paletes || [];
 
             for(let i = 1; i <= capacity; i++) {
-                const palletData = entry.paletes.find(p => p.posicao === i);
+                const palletData = paletes.find(p => p.posicao === i);
                 
                 const circle = document.createElement('div');
                 circle.className = 'pallet-circle w-24 h-24 rounded-full flex flex-col items-center justify-center cursor-pointer font-bold text-lg';
@@ -1255,7 +1314,8 @@
             document.getElementById('pallet-position-label').textContent = position;
             document.getElementById('juncao-number-container').classList.add('hidden');
 
-            const existingPallet = entry.paletes.find(p => p.posicao === position);
+            const paletes = entry.paletes || [];
+            const existingPallet = paletes.find(p => p.posicao === position);
             const deleteBtn = document.getElementById('delete-pallet-btn');
 
             if (existingPallet) {
@@ -1305,8 +1365,15 @@
                 }
                 
                 await updateDoc(entryDocRef, { paletes: existingPallets });
+
+                // CORREÇÃO: Atualiza o cache local e renderiza o grid imediatamente.
+                const cachedEntry = allEntriesCache.find(e => e.id === entryId);
+                if (cachedEntry) {
+                    cachedEntry.paletes = existingPallets;
+                    renderPalletGrid(cachedEntry);
+                }
+                
                 document.getElementById('pallet-form-container').classList.add('hidden');
-                // A atualização do onSnapshot vai recarregar a tela automaticamente.
             } catch (error) {
                 console.error("Erro ao salvar palete:", error);
                 showStatusMessage("Não foi possível salvar os dados do palete.", "error");
@@ -1326,6 +1393,14 @@
                 const updatedPallets = entryData.paletes.filter(p => p.posicao !== position);
                 
                 await updateDoc(entryDocRef, { paletes: updatedPallets });
+                
+                // CORREÇÃO: Atualiza o cache local e renderiza o grid imediatamente.
+                const cachedEntry = allEntriesCache.find(e => e.id === entryId);
+                if (cachedEntry) {
+                    cachedEntry.paletes = updatedPallets;
+                    renderPalletGrid(cachedEntry);
+                }
+
                 document.getElementById('pallet-form-container').classList.add('hidden');
             } catch (error) {
                 console.error("Erro ao excluir palete:", error);
@@ -1354,7 +1429,61 @@
             }
         }
 
-        // --- FIM: NOVAS FUNÇÕES PARA O MODAL DE AUDITORIA ---
+        // --- INÍCIO: NOVAS FUNÇÕES PARA O MODAL DE DETALHES DO HISTÓRICO ---
+        window.showHistoryDetailsModal = (entryId) => {
+            const entry = vehicleHistoryCache.find(e => e.id === entryId);
+            if (!entry) return;
+
+            const modal = document.getElementById('history-details-modal');
+            const headerEl = document.getElementById('history-modal-header');
+            const bodyEl = document.getElementById('history-modal-body');
+
+            headerEl.innerHTML = `
+                <span><strong>Placa:</strong> ${entry.placa}</span>
+                <span><strong>Veículo:</strong> ${vehicleTypeConfig[entry.tipoVeiculo]?.name || 'N/A'}</span>
+                <span><strong>Conferente:</strong> ${entry.conferenteNome} (#${entry.conferenteMatricula})</span>
+                <span><strong>Auditor:</strong> ${entry.auditorNome} (#${entry.auditorMatricula})</span>
+            `;
+            
+            const paletes = entry.paletes || [];
+            const comuns = paletes.filter(p => !p.temJuncao && p.tipo === 'comum').sort((a,b) => a.posicao - b.posicao);
+            const juncoes = paletes.filter(p => p.temJuncao).sort((a,b) => a.posicao - b.posicao);
+            const amarelos = paletes.filter(p => !p.temJuncao && p.tipo === 'amarelo').sort((a,b) => a.posicao - b.posicao);
+
+            const createPalletList = (title, palletArray, colorClass) => {
+                if (palletArray.length === 0) return '';
+                let listItems = palletArray.map(p => `
+                    <li class="p-2 bg-slate-900/50 rounded-md border border-slate-700">
+                        <span class="font-bold text-slate-300">Nº ${p.numero || 'N/A'}</span>
+                        <span class="text-sm text-slate-400">(Posição: ${p.posicao})</span>
+                        ${p.temJuncao ? `<span class="block text-xs text-pink-400">Junção: ${p.numeroJuncao || 'N/A'}</span>` : ''}
+                        ${p.observacoes ? `<p class="text-xs text-slate-500 mt-1 italic">Obs: ${p.observacoes}</p>` : ''}
+                    </li>
+                `).join('');
+                return `
+                    <div>
+                        <h4 class="text-lg font-semibold mb-2 ${colorClass}">${title} (${palletArray.length})</h4>
+                        <ul class="space-y-2">${listItems}</ul>
+                    </div>
+                `;
+            };
+
+            bodyEl.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    ${createPalletList('Paletes Comuns', comuns, 'text-white')}
+                    ${createPalletList('Junções', juncoes, 'text-pink-400')}
+                    ${createPalletList('Paletes Amarelos', amarelos, 'text-yellow-400')}
+                </div>
+            `;
+            
+            modal.classList.remove('hidden');
+        };
+
+        window.closeHistoryDetailsModal = () => {
+            document.getElementById('history-details-modal').classList.add('hidden');
+        };
+
+        // --- FIM: NOVAS FUNÇÕES ---
 
         async function downloadVehiclePDF() { 
             loadingOverlay.classList.remove('hidden');
@@ -1621,7 +1750,7 @@
             if (Array.isArray(provider.lojas) && provider.lojas.length > 0) {
                  storesHtml = `<ul class="list-disc list-inside space-y-1">${provider.lojas.map(l => `<li class="text-sm text-slate-300">${l.nomeFantasia} (#${l.numero}) - ${l.nomeReal}</li>`).join('')}</ul>`;
             } else if (provider.storeName) { // Compatibilidade
-                storesHtml = `<p class="text-sm text-slate-300">${provider.storeName} - ${provider.storeRealName || ''}</p>`;
+                 storesHtml = `<p class="text-sm text-slate-300">${provider.storeName} - ${provider.storeRealName || ''}</p>`;
             }
 
             div.innerHTML = `
@@ -1765,7 +1894,7 @@
             let storesHtml = '';
             if (Array.isArray(provider.lojas) && provider.lojas.length > 0) {
                  const THRESHOLD = 1;
-                if (provider.lojas.length > THRESHOLD) {
+                 if (provider.lojas.length > THRESHOLD) {
                     const collapsedView = `
                         <div>
                             <p class="font-semibold text-slate-200">${provider.lojas[0].nomeFantasia} (#${provider.lojas[0].numero})</p>
@@ -2468,8 +2597,7 @@
             yPosition += (splitContent.length * 7) + 10; 
 
             if (report.images && report.images.length > 0) {
-                for (const 
-                                 [index, imgSrc] of report.images.entries()) {
+                for (const                             [index, imgSrc] of report.images.entries()) {
                     // Verifica se há espaço na página atual para a imagem
                     // A altura aproximada da imagem é 60mm, com margem.
                     if (yPosition > pageHeight - margin - 60) {

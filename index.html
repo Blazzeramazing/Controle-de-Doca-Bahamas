@@ -604,6 +604,10 @@
             <div id="history-modal-body" class="p-6 overflow-y-auto space-y-6">
                 <!-- Conteúdo será inserido dinamicamente aqui -->
             </div>
+            <!-- Rodapé do Modal com Botão de Exportação Detalhada -->
+            <div id="history-modal-footer" class="p-4 border-t border-slate-700 flex justify-end flex-shrink-0">
+                <!-- O botão será inserido dinamicamente aqui -->
+            </div>
         </div>
     </div>
 
@@ -1437,6 +1441,7 @@
             const modal = document.getElementById('history-details-modal');
             const headerEl = document.getElementById('history-modal-header');
             const bodyEl = document.getElementById('history-modal-body');
+            const footerEl = document.getElementById('history-modal-footer');
 
             headerEl.innerHTML = `
                 <span><strong>Placa:</strong> ${entry.placa}</span>
@@ -1475,12 +1480,89 @@
                     ${createPalletList('Paletes Amarelos', amarelos, 'text-yellow-400')}
                 </div>
             `;
+
+            footerEl.innerHTML = `
+                <button class="bg-green-600/80 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-600" onclick="downloadVehicleDetailedPDF('${entry.id}')">
+                    Exportar PDF Detalhado
+                </button>
+            `;
             
             modal.classList.remove('hidden');
         };
 
         window.closeHistoryDetailsModal = () => {
             document.getElementById('history-details-modal').classList.add('hidden');
+        };
+
+        window.downloadVehicleDetailedPDF = async (entryId) => {
+            loadingOverlay.classList.remove('hidden');
+            loadingText.textContent = 'Gerando PDF detalhado...';
+
+            const entry = vehicleHistoryCache.find(e => e.id === entryId);
+            if (!entry) {
+                showStatusMessage("Registro de auditoria não encontrado.", "error");
+                loadingOverlay.classList.add('hidden');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            let yPosition = 22;
+
+            doc.setFontSize(18);
+            doc.text(`Relatório Detalhado de Auditoria - Placa: ${entry.placa}`, 14, yPosition);
+            yPosition += 10;
+
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.text(`Veículo: ${vehicleTypeConfig[entry.tipoVeiculo]?.name || 'N/A'}`, 14, yPosition);
+            yPosition += 5;
+            doc.text(`Auditor: ${entry.auditorNome} (#${entry.auditorMatricula})`, 14, yPosition);
+            yPosition += 5;
+            doc.text(`Conferente: ${entry.conferenteNome} (#${entry.conferenteMatricula})`, 14, yPosition);
+            yPosition += 5;
+            doc.text(`Entrada: ${formatDateTime(entry.dataEntrada)} | Saída: ${formatDateTime(entry.dataSaida)}`, 14, yPosition);
+            yPosition += 10;
+
+            if (Array.isArray(entry.lojas) && entry.lojas.length > 0) {
+                 doc.autoTable({
+                    startY: yPosition,
+                    head: [['Lojas de Destino']],
+                    body: entry.lojas.map(l => [`${l.nomeFantasia} (#${l.numero}) - ${l.nomeReal}`]),
+                    theme: 'grid',
+                    headStyles: { fillColor: [14, 116, 144] },
+                });
+                yPosition = doc.lastAutoTable.finalY + 10;
+            }
+
+            const paletes = entry.paletes || [];
+            const comuns = paletes.filter(p => !p.temJuncao && p.tipo === 'comum').sort((a,b) => a.posicao - b.posicao);
+            const juncoes = paletes.filter(p => p.temJuncao).sort((a,b) => a.posicao - b.posicao);
+            const amarelos = paletes.filter(p => !p.temJuncao && p.tipo === 'amarelo').sort((a,b) => a.posicao - b.posicao);
+
+            const addPalletTable = (title, data, headers, headColor) => {
+                if (data.length > 0) {
+                     doc.autoTable({
+                        startY: yPosition,
+                        head: [headers],
+                        body: data,
+                        didDrawPage: (data) => {
+                            doc.setFontSize(12);
+                            doc.text(title, data.settings.margin.left, yPosition - 2);
+                        },
+                        margin: { top: yPosition + 5 },
+                        headStyles: { fillColor: headColor },
+                    });
+                    yPosition = doc.lastAutoTable.finalY + 10;
+                }
+            };
+
+            addPalletTable(`Paletes Comuns (${comuns.length})`, comuns.map(p => [p.posicao, p.numero, p.observacoes]), ['Posição', 'Nº do Palete', 'Observações'], [100, 100, 100]);
+            addPalletTable(`Junções (${juncoes.length})`, juncoes.map(p => [p.posicao, p.numero, p.numeroJuncao, p.observacoes]), ['Posição', 'Nº do Palete', 'Nº da Junção', 'Observações'], [219, 39, 119]);
+            addPalletTable(`Paletes Amarelos (${amarelos.length})`, amarelos.map(p => [p.posicao, p.numero, p.observacoes]), ['Posição', 'Nº do Palete', 'Observações'], [202, 138, 4]);
+
+            doc.save(`auditoria_detalhada_${entry.placa}_${entry.id.substring(0,6)}.pdf`);
+            loadingOverlay.classList.add('hidden');
         };
 
         // --- FIM: NOVAS FUNÇÕES ---
@@ -2632,3 +2714,4 @@
     </script>
 </body>
 </html>
+

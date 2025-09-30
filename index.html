@@ -1,0 +1,2506 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Doca - CD Prevenção</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚛</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/imask/6.4.3/imask.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- jsPDF e html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif;
+        }
+        ::selection {
+            background-color: rgba(6, 182, 212, 0.5);
+            color: white;
+        }
+        .tab-button.active {
+            color: #22d3ee;
+            font-weight: 600;
+            background-color: rgba(6, 182, 212, 0.1);
+        }
+        #store-search-results::-webkit-scrollbar, #provider-store-search-results::-webkit-scrollbar { display: none; }
+        #store-search-results, #provider-store-search-results { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .card, .tab-button, button, input, textarea, a, select {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 0 15px rgba(6, 182, 212, 0.3);
+            border-color: rgba(6, 182, 212, 0.5);
+        }
+        .fade-in {
+            animation: fadeIn 0.7s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .loader {
+            border: 5px solid rgba(255,255,255,0.2);
+            border-top: 5px solid #06b6d4;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .hidden-file-input { display: none; }
+
+        .aurora-background {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            opacity: 0.4;
+        }
+        .aurora-background::before,
+        .aurora-background::after {
+            content: '';
+            position: absolute;
+            width: 200vw; height: 200vh;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background-image:
+                radial-gradient(circle at center, #06b6d4 0%, transparent 30%),
+                radial-gradient(circle at center, #8b5cf6 0%, transparent 35%);
+            mix-blend-mode: screen;
+            animation: aurora 30s linear infinite;
+            filter: blur(120px);
+        }
+        .aurora-background::after {
+            background-image:
+                radial-gradient(circle at center, #3b82f6 0%, transparent 30%),
+                radial-gradient(circle at center, #d946ef 0%, transparent 35%);
+            animation-direction: reverse;
+            animation-delay: -15s;
+        }
+        @keyframes aurora {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        
+        /* Estilos do Modal de Auditoria */
+        #audit-modal-content {
+            max-height: 90vh;
+        }
+        .pallet-circle {
+            background-color: #374151; /* gray-700 */
+            border: 2px solid #4b5563; /* gray-600 */
+            color: #d1d5db; /* gray-300 */
+            transition: all 0.3s ease;
+        }
+        .pallet-circle:hover {
+            border-color: #06b6d4; /* cyan-500 */
+            transform: scale(1.05);
+        }
+        .pallet-circle.comum { background-color: white; color: #1f2937; border-color: #9ca3af; }
+        .pallet-circle.amarelo { background-color: #facc15; color: #1f2937; border-color: #ca8a04; }
+        .pallet-circle.juncao {
+            background: linear-gradient(135deg, white 50%, #f472b6 50%); /* pink-400 */
+            color: #1f2937;
+            border-color: #db2777; /* pink-600 */
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-300">
+    <div class="aurora-background"></div>
+    <main class="relative z-10">
+        <!-- Container de Autenticação -->
+        <div id="auth-container" class="flex items-center justify-center min-h-screen">
+            <div class="w-full max-w-md p-8 space-y-6 bg-slate-800/50 backdrop-blur-md border border-slate-700 rounded-2xl shadow-2xl shadow-black/20 fade-in">
+                <div id="authStatusMessage" class="hidden p-4 mb-4 text-sm rounded-lg" role="alert"></div>
+                <!-- Formulário de Login -->
+                <div id="login-form-container">
+                    <h2 class="text-3xl font-bold text-center text-white">Bem-vindo(a)</h2>
+                    <form id="login-form" class="mt-6 space-y-4">
+                        <div>
+                            <label for="login-email" class="text-sm font-medium text-slate-400">Email</label>
+                            <input id="login-email" type="email" required class="w-full p-3 mt-1 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                        </div>
+                        <div>
+                            <label for="login-password" class="text-sm font-medium text-slate-400">Senha</label>
+                            <input id="login-password" type="password" required class="w-full p-3 mt-1 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                        </div>
+                        <button type="submit" class="w-full py-3 text-white font-semibold bg-cyan-600 rounded-md hover:bg-cyan-500 shadow-lg shadow-cyan-500/20 transform hover:scale-105">Entrar</button>
+                    </form>
+                    <p class="mt-6 text-sm text-center text-slate-400">
+                        Não tem uma conta? <a href="#" id="show-register" class="font-semibold text-cyan-400 hover:text-cyan-300">Cadastre-se</a>
+                    </p>
+                     <p class="mt-2 text-sm text-center text-slate-400">
+                        <a href="#" id="show-reset" class="font-semibold text-cyan-400 hover:text-cyan-300">Esqueceu a senha?</a>
+                    </p>
+                </div>
+                <!-- Formulário de Cadastro -->
+                <div id="register-form-container" class="hidden">
+                     <h2 class="text-3xl font-bold text-center text-white">Criar Conta</h2>
+                    <form id="register-form" class="mt-6 space-y-4">
+                        <div>
+                            <label for="register-name" class="text-sm font-medium text-slate-400">Nome</label>
+                            <input id="register-name" type="text" required class="w-full p-3 mt-1 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                        </div>
+                        <div>
+                            <label for="register-email" class="text-sm font-medium text-slate-400">Email</label>
+                            <input id="register-email" type="email" required class="w-full p-3 mt-1 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                        </div>
+                        <div>
+                            <label for="register-password" class="text-sm font-medium text-slate-400">Senha</label>
+                            <input id="register-password" type="password" required class="w-full p-3 mt-1 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                        </div>
+                        <button type="submit" class="w-full py-3 text-white font-semibold bg-cyan-600 rounded-md hover:bg-cyan-500 shadow-lg shadow-cyan-500/20 transform hover:scale-105">Cadastrar</button>
+                    </form>
+                    <p class="mt-6 text-sm text-center text-slate-400">
+                        Já tem uma conta? <a href="#" id="show-login" class="font-semibold text-cyan-400 hover:text-cyan-300">Faça login</a>
+                    </p>
+                </div>
+                <!-- Formulário de Recuperação de Senha -->
+                <div id="reset-form-container" class="hidden">
+                    <h2 class="text-3xl font-bold text-center text-white">Recuperar Senha</h2>
+                    <form id="reset-form" class="mt-6 space-y-4">
+                        <div>
+                            <label for="reset-email" class="text-sm font-medium text-slate-400">Email</label>
+                            <input id="reset-email" type="email" required class="w-full p-3 mt-1 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                        </div>
+                        <button type="submit" class="w-full py-3 text-white font-semibold bg-cyan-600 rounded-md hover:bg-cyan-500 shadow-lg shadow-cyan-500/20 transform hover:scale-105">Enviar Link</button>
+                    </form>
+                     <p class="mt-6 text-sm text-center text-slate-400">
+                        <a href="#" id="back-to-login" class="font-semibold text-cyan-400 hover:text-cyan-300">Voltar para o Login</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Container Principal do App -->
+        <div id="main-app-container" class="hidden container mx-auto p-4 md:p-8 max-w-7xl">
+            <header class="mb-8 flex justify-between items-center">
+                <div>
+                    <h1 class="text-4xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Sistema de Auditoria de Doca</h1>
+                    <p id="welcome-message" class="text-lg text-slate-400">Gerenciamento de carregamento para Prevenção de Perdas.</p>
+                </div>
+                <button id="logout-btn" class="bg-red-600/50 text-white font-bold py-2 px-4 rounded-lg border border-red-500 hover:bg-red-600/80 transform hover:scale-105">Sair</button>
+            </header>
+
+            <!-- Menu Hamburger -->
+            <div class="relative mb-6">
+                <button id="menu-toggle-btn" class="flex items-center gap-2 bg-slate-800/50 p-3 border border-slate-700 rounded-lg shadow-sm text-slate-300 hover:bg-slate-700/50 hover:border-cyan-500">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-16 6h16"></path></svg>
+                    <span id="current-tab-name" class="font-medium text-white">Carga e Descarga</span>
+                </button>
+                <nav id="main-menu" class="hidden absolute left-0 mt-2 w-64 bg-slate-800 rounded-lg shadow-2xl z-20 border border-slate-700 overflow-hidden">
+                    <button id="tab-btn-control" class="tab-button active w-full text-left block py-3 px-4 text-sm text-slate-300 hover:bg-slate-700/50" onclick="showTab('control')">Carga e Descarga</button>
+                    <button id="tab-btn-providers" class="tab-button w-full text-left block py-3 px-4 text-sm text-slate-300 hover:bg-slate-700/50" onclick="showTab('providers')">Prestadores de Serviço</button>
+                    <button id="tab-btn-stores" class="tab-button w-full text-left block py-3 px-4 text-sm text-slate-300 hover:bg-slate-700/50" onclick="showTab('stores')">Gerenciar Lojas</button>
+                    <button id="tab-btn-reports" class="tab-button w-full text-left block py-3 px-4 text-sm text-slate-300 hover:bg-slate-700/50" onclick="showTab('reports')">Relatórios e Ocorrências</button>
+                    <button id="tab-btn-dashboard" class="tab-button w-full text-left block py-3 px-4 text-sm text-slate-300 hover:bg-slate-700/50" onclick="showTab('dashboard')">Dashboard</button>
+                </nav>
+            </div>
+            
+            <div id="statusMessage" class="hidden p-4 mb-4 text-sm rounded-lg" role="alert"></div>
+
+            <!-- Seção: Carga e Descarga -->
+            <div id="tab-control" class="fade-in">
+                <!-- Formulário de Entrada -->
+                <div class="card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl mb-8">
+                    <h2 class="text-2xl font-semibold mb-4 text-white">Registrar Nova Auditoria</h2>
+                    <form id="entry-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div>
+                                <label for="conferente-nome" class="block text-sm font-medium text-slate-400 mb-1">Nome do Conferente</label>
+                                <input type="text" id="conferente-nome" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                            </div>
+                            <div>
+                                <label for="conferente-matricula" class="block text-sm font-medium text-slate-400 mb-1">Matrícula do Conferente</label>
+                                <input type="text" id="conferente-matricula" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                            </div>
+                             <div>
+                                <label for="placa" class="block text-sm font-medium text-slate-400 mb-1">Placa do Veículo</label>
+                                <input type="text" id="placa" name="placa" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md uppercase focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200" placeholder="AAA-1234 ou ABC1D23">
+                            </div>
+                            <div>
+                                <label for="auditor-nome" class="block text-sm font-medium text-slate-400 mb-1">Nome do Auditor (Prevenção)</label>
+                                <input type="text" id="auditor-nome" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                            </div>
+                            <div>
+                                <label for="auditor-matricula" class="block text-sm font-medium text-slate-400 mb-1">Matrícula do Auditor</label>
+                                <input type="text" id="auditor-matricula" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                            </div>
+                            <div>
+                                <label for="tipo-veiculo" class="block text-sm font-medium text-slate-400 mb-1">Tipo de Veículo</label>
+                                <select id="tipo-veiculo" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                                    <option value="">Selecione...</option>
+                                    <option value="toco">Toco / 3/4 (8 Paletes)</option>
+                                    <option value="truck">Truck (16 Paletes)</option>
+                                    <option value="carreta">Carreta (30 Paletes)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-slate-700 pt-4">
+                            <h3 class="text-lg font-medium text-white mb-2">Lojas de Destino</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                                <div class="sm:col-span-2 relative search-container">
+                                    <label for="store-search-input" class="block text-sm font-medium text-slate-400 mb-1">Buscar Loja (Nome ou Nº)</label>
+                                    <input type="text" id="store-search-input" autocomplete="off" placeholder="Digite para buscar..." class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                                    <div id="store-search-results" class="hidden absolute z-10 w-full bg-slate-800 border border-slate-700 rounded-md mt-1 max-h-60 overflow-y-auto shadow-lg"></div>
+                                </div>
+                                <button type="button" id="add-entry-store-btn" class="w-full sm:w-auto bg-slate-700 text-slate-300 font-bold py-2 px-4 rounded-lg hover:bg-slate-600 transform hover:scale-105">Adicionar Loja</button>
+                            </div>
+                            <div id="entry-stores-list" class="mt-4 space-y-2"></div>
+                        </div>
+                        
+                        <div>
+                            <button type="submit" class="w-full md:w-auto bg-cyan-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-cyan-500 transform hover:scale-105 shadow-lg shadow-cyan-500/20">Iniciar Auditoria</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Veículos Ativos -->
+                <div class="card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl mb-8">
+                    <h2 class="text-2xl font-semibold mb-4 text-white">Veículos em Carregamento</h2>
+                    <div id="active-entries-list" class="space-y-4">
+                        <p class="text-slate-500">Nenhum veículo em carregamento no momento.</p>
+                    </div>
+                </div>
+
+                <!-- Histórico de Veículos -->
+                <div class="card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl">
+                    <div class="flex flex-col sm:flex-row flex-wrap justify-between items-start sm:items-center mb-4 gap-4">
+                        <h2 class="text-2xl font-semibold text-white w-full sm:w-auto">Histórico de Auditorias</h2>
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
+                            <input type="text" id="vehicle-history-search" placeholder="Buscar..." class="p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                            <input type="date" id="vehicle-filter-start-date" class="p-2 bg-slate-900/50 border border-slate-700 rounded-md shadow-sm text-slate-300">
+                            <input type="date" id="vehicle-filter-end-date" class="p-2 bg-slate-900/50 border border-slate-700 rounded-md shadow-sm text-slate-300">
+                            <button id="download-vehicle-pdf-btn" class="w-full sm:w-auto bg-green-600/80 text-white font-bold py-2.5 px-5 rounded-lg hover:bg-green-600 self-end transform hover:scale-105 shadow-lg shadow-green-500/20">Exportar PDF</button>
+                        </div>
+                    </div>
+                    <div id="history-entries-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4"></div>
+                    <p id="history-placeholder" class="text-slate-500 mt-4 text-center hidden">Nenhum registro no histórico.</p>
+                    <div id="vehicle-history-pagination-controls" class="mt-6 flex justify-center items-center space-x-2"></div>
+                </div>
+            </div>
+            
+            <!-- Seção: Prestadores de Serviço -->
+            <div id="tab-providers" class="hidden fade-in">
+                 <div class="card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl mb-8">
+                    <h2 class="text-2xl font-semibold mb-4 text-white">Registrar Novo Serviço</h2>
+                    <form id="provider-form" class="space-y-6">
+                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="provider-company" class="block text-sm font-medium text-slate-400 mb-1">Empresa Prestadora</label>
+                                <input type="text" id="provider-company" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                            </div>
+                            <div>
+                                <label for="provider-plate" class="block text-sm font-medium text-slate-400 mb-1">Placa do Veículo (Opcional)</label>
+                                <input type="text" id="provider-plate" class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md uppercase focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                            </div>
+                        </div>
+
+                        <div class="border-t border-slate-700 pt-4">
+                            <h3 class="text-lg font-medium text-white mb-2">Lojas de Destino</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                                <div class="sm:col-span-2 relative search-container">
+                                    <label for="provider-store-search" class="block text-sm font-medium text-slate-400 mb-1">Buscar Loja (Nome ou Nº)</label>
+                                    <input type="text" id="provider-store-search" autocomplete="off" placeholder="Busque a loja..." class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                                    <div id="provider-store-search-results" class="hidden absolute z-10 w-full bg-slate-800 border border-slate-700 mt-1 rounded-md shadow-lg max-h-48 overflow-y-auto"></div>
+                                </div>
+                                <button type="button" id="add-provider-store-btn" class="w-full sm:w-auto bg-slate-700 text-slate-300 font-bold py-2 px-4 rounded-lg hover:bg-slate-600 transform hover:scale-105">Adicionar Loja</button>
+                            </div>
+                            <div id="provider-stores-list" class="mt-4 space-y-2"></div>
+                        </div>
+                        
+                        <div class="border-t border-slate-700 pt-4">
+                            <h3 class="text-lg font-medium text-white mb-2">Equipe</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                                <div class="sm:col-span-1">
+                                    <label for="provider-member-name" class="block text-sm font-medium text-slate-400">Nome do Integrante</label>
+                                    <input type="text" id="provider-member-name" class="mt-1 w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                                </div>
+                                <div class="sm:col-span-1">
+                                    <label for="provider-member-doc" class="block text-sm font-medium text-slate-400">CPF/RG</label>
+                                    <input type="text" id="provider-member-doc" class="mt-1 w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                                </div>
+                                <button type="button" id="add-member-btn" class="w-full sm:w-auto bg-slate-700 text-slate-300 font-bold py-2 px-4 rounded-lg hover:bg-slate-600 transform hover:scale-105">Adicionar</button>
+                            </div>
+                            <div id="team-members-list" class="mt-4 space-y-2"></div>
+                        </div>
+                        <div class="border-t border-slate-700 pt-4">
+                            <label for="provider-description" class="block text-sm font-medium text-slate-400 mb-1">Descrição do Serviço</label>
+                            <textarea id="provider-description" rows="3" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200"></textarea>
+                        </div>
+                        <button type="submit" class="w-full md:w-auto bg-cyan-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-cyan-500 transform hover:scale-105 shadow-lg shadow-cyan-500/20">Registrar Serviço Completo</button>
+                    </form>
+                </div>
+                <div class="card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl mb-8">
+                    <h2 class="text-2xl font-semibold mb-4 text-white">Prestadores no Local</h2>
+                    <div id="active-providers-list" class="space-y-4">
+                        <p class="text-slate-500">Nenhum prestador de serviço no local.</p>
+                    </div>
+                </div>
+                <div class="card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl">
+                    <div class="flex flex-col sm:flex-row flex-wrap justify-between items-start sm:items-center mb-4 gap-4">
+                        <h2 class="text-2xl font-semibold text-white">Histórico de Serviços</h2>
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
+                            <input type="text" id="provider-history-search" placeholder="Buscar..." class="p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                            <input type="date" id="provider-filter-start-date" class="p-2 bg-slate-900/50 border border-slate-700 rounded-md shadow-sm text-slate-300">
+                            <input type="date" id="provider-filter-end-date" class="p-2 bg-slate-900/50 border border-slate-700 rounded-md shadow-sm text-slate-300">
+                            <button id="download-providers-pdf-btn" class="w-full sm:w-auto bg-green-600/80 text-white font-bold py-2.5 px-5 rounded-lg hover:bg-green-600 self-end transform hover:scale-105 shadow-lg shadow-green-500/20">Exportar PDF</button>
+                        </div>
+                    </div>
+                    <div id="provider-history-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4"></div>
+                    <p id="provider-history-placeholder" class="text-slate-500 mt-4 text-center hidden">Nenhum serviço no histórico.</p>
+                    <div id="provider-history-pagination-controls" class="mt-6 flex justify-center items-center space-x-2"></div>
+                </div>
+            </div>
+
+            <!-- Seção: Gerenciar Lojas -->
+            <div id="tab-stores" class="hidden fade-in">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-1 card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl h-fit">
+                        <h2 class="text-2xl font-semibold mb-4 text-white">Adicionar Nova Loja</h2>
+                        <form id="store-form" class="space-y-4">
+                            <div>
+                                <label for="store-number" class="block text-sm font-medium text-slate-400 mb-1">Número da Loja</label>
+                                <input type="text" id="store-number" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                            </div>
+                            <div>
+                                <label for="store-real-name" class="block text-sm font-medium text-slate-400 mb-1">Nome Real</label>
+                                <input type="text" id="store-real-name" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                            </div>
+                            <div>
+                                <label for="store-fantasy-name" class="block text-sm font-medium text-slate-400 mb-1">Nome Fantasia</label>
+                                <input type="text" id="store-fantasy-name" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                            </div>
+                            <button type="submit" class="w-full bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-cyan-500 transform hover:scale-105 shadow-lg shadow-cyan-500/20">Salvar Loja</button>
+                        </form>
+                    </div>
+                    <div class="lg:col-span-2 card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl">
+                        <h2 class="text-2xl font-semibold mb-4 text-white">Lojas Cadastradas</h2>
+                        <div class="mb-4">
+                            <input type="text" id="store-management-search" placeholder="Buscar loja por nome ou número..." class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                        </div>
+                        <div id="stores-list" class="space-y-3">
+                            <p class="text-slate-500">Nenhuma loja cadastrada.</p>
+                        </div>
+                        <div id="stores-pagination-controls" class="mt-6 flex justify-center items-center space-x-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção: Relatórios e Ocorrências -->
+            <div id="tab-reports" class="hidden fade-in">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-1 card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl h-fit">
+                        <h2 class="text-2xl font-semibold mb-4 text-white">Novo Relatório</h2>
+                        <form id="report-form" class="space-y-4">
+                            <div>
+                                <label for="report-title" class="block text-sm font-medium text-slate-400 mb-1">Título</label>
+                                <input type="text" id="report-title" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                            </div>
+                            <div>
+                                <label for="report-content" class="block text-sm font-medium text-slate-400 mb-1">Descrição da Ocorrência</label>
+                                <textarea id="report-content" rows="8" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200"></textarea>
+                            </div>
+                            <div>
+                                <button type="button" id="add-report-image-btn" class="w-full flex items-center justify-center gap-2 bg-slate-700 text-slate-300 font-bold py-2 px-4 rounded-lg hover:bg-slate-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.414-1.414A1 1 0 009.586 3H7.414a1 1 0 00-.707.293L5.293 4.707A1 1 0 014.586 5H4zm10 6a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg>
+                                    Adicionar Imagens
+                                </button>
+                            </div>
+                            <div id="report-image-previews" class="grid grid-cols-3 gap-2"></div>
+                            <button type="submit" class="w-full bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-cyan-500 transform hover:scale-105 shadow-lg shadow-cyan-500/20">Salvar Relatório</button>
+                        </form>
+                    </div>
+                    <div class="lg:col-span-2 card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl">
+                        <h2 class="text-2xl font-semibold mb-4 text-white">Relatórios Salvos</h2>
+                        <div id="reports-list" class="space-y-4">
+                            <p class="text-slate-500">Nenhum relatório cadastrado.</p>
+                        </div>
+                        <div id="reports-pagination-controls" class="mt-6 flex justify-center items-center space-x-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção Dashboard -->
+            <div id="tab-dashboard" class="hidden fade-in">
+                <div class="card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl mb-8">
+                    <h2 class="text-2xl font-semibold mb-4 text-white">Análise de Movimentação</h2>
+                    <div class="flex flex-wrap items-end gap-4 border-b border-slate-700 pb-4 mb-6">
+                        <div>
+                            <label for="dash-start-date" class="block text-sm font-medium text-slate-400">Data de Início</label>
+                            <input type="date" id="dash-start-date" class="mt-1 p-2 bg-slate-900/50 border border-slate-700 rounded-md text-slate-300">
+                        </div>
+                        <div>
+                            <label for="dash-end-date" class="block text-sm font-medium text-slate-400">Data de Fim</label>
+                            <input type="date" id="dash-end-date" class="mt-1 p-2 bg-slate-900/50 border border-slate-700 rounded-md text-slate-300">
+                        </div>
+                        <button id="dash-apply-filter" class="bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-cyan-500 transform hover:scale-105 shadow-lg shadow-cyan-500/20">Aplicar Filtro</button>
+                    </div>
+                    <div id="kpi-container" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-slate-900/50 p-5 rounded-lg text-center border border-slate-700">
+                            <p class="text-sm font-medium text-slate-400">Total de Auditorias</p>
+                            <p id="kpi-total-entries" class="text-3xl font-bold text-cyan-400">0</p>
+                        </div>
+                        <div class="bg-slate-900/50 p-5 rounded-lg text-center border border-slate-700">
+                            <p class="text-sm font-medium text-slate-400">Total de Serviços</p>
+                            <p id="kpi-total-services" class="text-3xl font-bold text-green-400">0</p>
+                        </div>
+                        <div class="bg-slate-900/50 p-5 rounded-lg text-center border border-slate-700">
+                            <p class="text-sm font-medium text-slate-400">Tempo Médio (Auditoria)</p>
+                            <p id="kpi-avg-time" class="text-3xl font-bold text-cyan-400">0 min</p>
+                        </div>
+                    </div>
+                    <div id="charts-container" class="space-y-8">
+                        <div class="bg-slate-900/50 p-6 rounded-xl border border-slate-700">
+                            <h3 class="text-xl font-semibold mb-2 text-white">Movimentação por Dia</h3>
+                            <p class="text-sm text-slate-400 mb-4">Volume total de entradas ao longo do período selecionado.</p>
+                            <div class="relative h-96"><canvas id="entriesOverTimeChart"></canvas></div>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <div class="bg-slate-900/50 p-6 rounded-xl border border-slate-700">
+                                <h3 class="text-xl font-semibold mb-2 text-white">Pico de Atividade por Hora</h3>
+                                <p class="text-sm text-slate-400 mb-4">Analise os horários de maior movimento na doca.</p>
+                                <div class="relative h-80"><canvas id="activityByHourChart"></canvas></div>
+                            </div>
+                            <div class="bg-slate-900/50 p-6 rounded-xl border border-slate-700">
+                                <h3 class="text-xl font-semibold mb-2 text-white">Fluxo por Dia da Semana</h3>
+                                <p class="text-sm text-slate-400 mb-4">Identifique os dias mais movimentados da semana.</p>
+                                <div class="relative h-80"><canvas id="activityByWeekdayChart"></canvas></div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                             <div class="bg-slate-900/50 p-6 rounded-xl border border-slate-700">
+                                <h3 class="text-xl font-semibold mb-2 text-white">Top 5 Lojas (Carregamento)</h3>
+                                <p class="text-sm text-slate-400 mb-4">Lojas que mais recebem entregas.</p>
+                                <div class="relative h-80"><canvas id="topStoresChart"></canvas></div>
+                            </div>
+                            <div class="bg-slate-900/50 p-6 rounded-xl border border-slate-700">
+                                <h3 class="text-xl font-semibold mb-2 text-white">Top 5 Empresas de Serviço</h3>
+                                <p class="text-sm text-slate-400 mb-4">Empresas de serviço que mais acessam o local.</p>
+                                <div class="relative h-80"><canvas id="topCompaniesChart"></canvas></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="no-data-message" class="hidden text-center py-10">
+                        <p class="text-slate-500">Não há dados suficientes no período selecionado para gerar os gráficos.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+    
+    <!-- Overlay de Carregamento -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center hidden z-50">
+        <div class="text-center text-white">
+            <div class="loader mx-auto"></div>
+            <p id="loading-text" class="mt-4 text-lg font-semibold"></p>
+        </div>
+    </div>
+
+    <!-- Modal de Auditoria -->
+    <div id="audit-modal" class="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm flex items-center justify-center hidden z-40 p-4">
+        <div id="audit-modal-content" class="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-6xl flex flex-col fade-in">
+            <!-- Cabeçalho do Modal -->
+            <div class="flex justify-between items-center p-4 border-b border-slate-700">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Auditoria de Carregamento</h2>
+                    <div id="audit-modal-header" class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-400 mt-1"></div>
+                </div>
+                <button onclick="closeAuditModal()" class="text-slate-400 hover:text-white text-3xl leading-none">&times;</button>
+            </div>
+            <!-- Corpo do Modal -->
+            <div class="flex-grow flex flex-col md:flex-row p-4 gap-4 overflow-hidden">
+                <!-- Grid de Paletes -->
+                <div class="flex-grow overflow-y-auto pr-2">
+                    <div id="pallet-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        <!-- Círculos de paletes serão inseridos aqui -->
+                    </div>
+                </div>
+                <!-- Formulário do Palete -->
+                <div id="pallet-form-container" class="w-full md:max-w-sm bg-slate-900/50 p-4 rounded-lg border border-slate-700 hidden flex-shrink-0">
+                    <form id="pallet-form" class="space-y-4">
+                        <input type="hidden" id="pallet-position">
+                        <input type="hidden" id="pallet-entry-id">
+                        <h3 class="text-lg font-semibold text-white">Palete Posição <span id="pallet-position-label"></span></h3>
+                        <div>
+                            <label for="pallet-number" class="block text-sm font-medium text-slate-400 mb-1">Número do Palete</label>
+                            <input type="text" id="pallet-number" required class="w-full p-2 bg-slate-800 border border-slate-600 rounded-md text-slate-200">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-400 mb-1">Tipo de Palete</label>
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-2"><input type="radio" name="pallet-type" value="comum" class="form-radio bg-slate-700 text-cyan-500 focus:ring-cyan-500" checked> Comum (Branco)</label>
+                                <label class="flex items-center gap-2"><input type="radio" name="pallet-type" value="amarelo" class="form-radio bg-slate-700 text-cyan-500 focus:ring-cyan-500"> Amarelo</label>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                             <input type="checkbox" id="pallet-has-juncao" class="form-checkbox h-5 w-5 bg-slate-700 rounded text-cyan-500 focus:ring-cyan-500">
+                             <label for="pallet-has-juncao" class="text-sm font-medium text-slate-400">Adicionar Junção (Rosa)?</label>
+                        </div>
+                        <div id="juncao-number-container" class="hidden">
+                             <label for="juncao-number" class="block text-sm font-medium text-slate-400 mb-1">Número da Junção</label>
+                            <input type="text" id="juncao-number" class="w-full p-2 bg-slate-800 border border-slate-600 rounded-md text-slate-200">
+                        </div>
+                        <div>
+                            <label for="pallet-obs" class="block text-sm font-medium text-slate-400 mb-1">Observações</label>
+                            <textarea id="pallet-obs" rows="3" class="w-full p-2 bg-slate-800 border border-slate-600 rounded-md text-slate-200"></textarea>
+                        </div>
+                        <div class="flex gap-2">
+                            <button type="submit" class="flex-grow bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-cyan-500">Salvar Palete</button>
+                            <button type="button" id="delete-pallet-btn" class="bg-red-600/80 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-500 hidden">Excluir</button>
+                        </div>
+                        <button type="button" id="cancel-pallet-form" class="w-full text-center text-sm text-slate-400 hover:text-white mt-2">Cancelar</button>
+                    </form>
+                </div>
+            </div>
+             <!-- Rodapé do Modal -->
+            <div class="p-4 border-t border-slate-700 flex justify-end">
+                <button id="finalize-audit-btn" class="bg-green-600/80 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-600">Finalizar Auditoria e Registrar Saída</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Input de arquivo oculto -->
+    <input type="file" accept="image/*" multiple class="hidden-file-input" id="report-image-input">
+
+
+    <!-- Firebase SDK e Código Principal -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, 
+            sendPasswordResetEmail, sendEmailVerification, signOut, updateProfile 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, collection, onSnapshot, addDoc, updateDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        const appId = 'controle-doca-cd-v1';
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.borderColor = 'rgba(100, 116, 139, 0.2)';
+
+        let currentUserId = null;
+        let appInitialized = false;
+        let storesCache = [];
+        let allEntriesCache = [];
+        let vehicleHistoryCache = [];
+        let providerHistoryCache = [];
+        let reportsCache = [];
+        let chartInstances = {};
+        let currentTeamMembers = [];
+        let currentEntryStores = [];
+        let currentProviderStores = [];
+        let currentReportImages = [];
+        let storesCurrentPage = 1;
+        const storesPerPage = 6;
+        let vehicleHistoryCurrentPage = 1;
+        const vehicleHistoryPerPage = 6;
+        let providerHistoryCurrentPage = 1;
+        const providerHistoryPerPage = 6;
+        let reportsCurrentPage = 1;
+        const reportsPerPage = 3;
+        
+        const authContainer = document.getElementById('auth-container');
+        const mainAppContainer = document.getElementById('main-app-container');
+        const loginFormContainer = document.getElementById('login-form-container');
+        const registerFormContainer = document.getElementById('register-form-container');
+        const resetFormContainer = document.getElementById('reset-form-container');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const loadingText = document.getElementById('loading-text');
+
+        onAuthStateChanged(auth, (user) => {
+            if (user && user.emailVerified) {
+                currentUserId = user.uid;
+                authContainer.classList.add('hidden');
+                mainAppContainer.classList.remove('hidden');
+                document.getElementById('welcome-message').textContent = `Bem-vindo(a), ${user.displayName || 'Usuário'}`;
+                if (!appInitialized) {
+                    initApp();
+                    appInitialized = true;
+                }
+            } else {
+                currentUserId = null;
+                authContainer.classList.remove('hidden');
+                mainAppContainer.classList.add('hidden');
+                appInitialized = false;
+            }
+        });
+
+        function showAuthForm(formToShow) {
+            loginFormContainer.classList.add('hidden');
+            registerFormContainer.classList.add('hidden');
+            resetFormContainer.classList.add('hidden');
+            formToShow.classList.remove('hidden');
+        }
+
+        document.getElementById('show-register').addEventListener('click', (e) => { e.preventDefault(); showAuthForm(registerFormContainer); });
+        document.getElementById('show-login').addEventListener('click', (e) => { e.preventDefault(); showAuthForm(loginFormContainer); });
+        document.getElementById('show-reset').addEventListener('click', (e) => { e.preventDefault(); showAuthForm(resetFormContainer); });
+        document.getElementById('back-to-login').addEventListener('click', (e) => { e.preventDefault(); showAuthForm(loginFormContainer); });
+
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                await updateProfile(userCredential.user, { displayName: name });
+                await sendEmailVerification(userCredential.user);
+                showStatusMessage("Cadastro realizado! Verifique seu e-mail para ativar sua conta.", 'success', 'auth');
+                document.getElementById('register-form').reset();
+                showAuthForm(loginFormContainer);
+            } catch (error) {
+                console.error("Erro no cadastro:", error);
+                showStatusMessage(`Erro no cadastro: ${error.message}`, 'error', 'auth');
+            }
+        });
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                if (!userCredential.user.emailVerified) {
+                    await signOut(auth);
+                    let message = 'Seu e-mail ainda não foi verificado. Por favor, verifique sua caixa de entrada. <a href="#" id="resend-verification" class="font-bold underline text-cyan-400">Reenviar email</a>';
+                    showStatusMessage(message, 'error', 'auth');
+                    
+                    document.getElementById('resend-verification').addEventListener('click', async (resendEvent) => {
+                        resendEvent.preventDefault();
+                        try {
+                            // Re-autentica temporariamente para obter o objeto do usuário
+                            const tempUserCredential = await signInWithEmailAndPassword(auth, email, password);
+                            await sendEmailVerification(tempUserCredential.user);
+                            await signOut(auth); // Desloga novamente
+                            showStatusMessage('Email de verificação reenviado com sucesso.', 'success', 'auth');
+                        } catch (resendError) {
+                            showStatusMessage(`Erro ao reenviar: ${resendError.message}`, 'error', 'auth');
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error("Erro no login:", error);
+                showStatusMessage("Email ou senha inválidos.", 'error', 'auth');
+            }
+        });
+
+        document.getElementById('reset-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('reset-email').value;
+            try {
+                await sendPasswordResetEmail(auth, email);
+                showStatusMessage("Link de recuperação enviado para o seu email.", 'success', 'auth');
+                showAuthForm(loginFormContainer);
+            } catch (error) {
+                console.error("Erro ao recuperar senha:", error);
+                showStatusMessage(`Erro: ${error.message}`, 'error', 'auth');
+            }
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            await signOut(auth);
+        });
+
+        function initApp() {
+            setupMasks();
+            setupEventListeners();
+            listenForStores();
+            listenForEntries();
+            listenForProviders();
+            listenForReports();
+            showTab('control');
+        }
+
+        window.showTab = (tabName) => {
+            ['control', 'stores', 'dashboard', 'providers', 'reports'].forEach(id => {
+                const tab = document.getElementById(`tab-${id}`);
+                const tabBtn = document.getElementById(`tab-btn-${id}`);
+                if (tab) tab.classList.add('hidden');
+                if (tabBtn) tabBtn.classList.remove('active');
+            });
+
+            const selectedTab = document.getElementById(`tab-${tabName}`);
+            const selectedTabBtn = document.getElementById(`tab-btn-${tabName}`);
+            if (selectedTab) selectedTab.classList.remove('hidden');
+            if (selectedTabBtn) {
+                selectedTabBtn.classList.add('active');
+                document.getElementById('current-tab-name').textContent = selectedTabBtn.textContent.trim();
+            }
+
+            document.getElementById('main-menu').classList.add('hidden');
+            
+            if (tabName === 'stores') {
+                storesCurrentPage = 1;
+                renderStoresPage();
+            }
+             if (tabName === 'reports') {
+                reportsCurrentPage = 1;
+                renderReportsPage();
+            }
+             if (tabName === 'providers') {
+                providerHistoryCurrentPage = 1;
+                renderProviderHistoryPage();
+            }
+            if (tabName === 'dashboard') {
+                setDefaultDateFilters();
+                updateDashboard();
+            }
+        };
+
+        function showStatusMessage(message, type = 'success', context = 'app') {
+            const el = context === 'auth' 
+                ? document.getElementById('authStatusMessage') 
+                : document.getElementById('statusMessage');
+            
+            el.innerHTML = message;
+            const successClasses = 'bg-green-500/20 text-green-300 border border-green-500/30';
+            const errorClasses = 'bg-red-500/20 text-red-300 border border-red-500/30';
+            el.className = `p-4 mb-4 text-sm rounded-lg ${type === 'error' ? errorClasses : successClasses}`;
+            el.classList.remove('hidden');
+
+            if (type === 'success' && context !== 'auth') {
+                 setTimeout(() => el.classList.add('hidden'), 5000);
+            }
+        }
+        
+        function setupEventListeners() {
+            document.getElementById('store-form').addEventListener('submit', handleAddStore);
+            document.getElementById('entry-form').addEventListener('submit', handleAddEntry);
+            document.getElementById('download-vehicle-pdf-btn').addEventListener('click', downloadVehiclePDF);
+            document.getElementById('provider-form').addEventListener('submit', handleAddProvider);
+            document.getElementById('download-providers-pdf-btn').addEventListener('click', downloadProvidersPDF);
+            document.getElementById('dash-apply-filter').addEventListener('click', updateDashboard);
+            document.getElementById('add-member-btn').addEventListener('click', handleAddMember);
+            document.getElementById('add-entry-store-btn').addEventListener('click', handleAddEntryStore);
+            document.getElementById('add-provider-store-btn').addEventListener('click', handleAddProviderStore);
+            document.getElementById('report-form').addEventListener('submit', handleAddReport);
+            document.getElementById('vehicle-history-search').addEventListener('input', renderVehicleHistoryPage);
+            document.getElementById('provider-history-search').addEventListener('input', renderProviderHistoryPage);
+            document.getElementById('store-management-search').addEventListener('input', renderStoresPage);
+            document.getElementById('add-report-image-btn').addEventListener('click', () => {
+                document.getElementById('report-image-input').click();
+            });
+            document.getElementById('report-image-input').addEventListener('change', handleReportFileSelect);
+
+            document.getElementById('conferente-matricula').addEventListener('input', restrictToNumbers);
+            document.getElementById('auditor-matricula').addEventListener('input', restrictToNumbers);
+            document.getElementById('provider-member-doc').addEventListener('input', restrictToNumbers);
+
+            const entryStoreSearch = document.getElementById('store-search-input');
+            entryStoreSearch.addEventListener('input', (e) => handleStoreSearch(e, 'entry'));
+            entryStoreSearch.addEventListener('focus', (e) => handleStoreSearch(e, 'entry'));
+
+            const providerStoreSearch = document.getElementById('provider-store-search');
+            providerStoreSearch.addEventListener('input', (e) => handleStoreSearch(e, 'provider'));
+            providerStoreSearch.addEventListener('focus', (e) => handleStoreSearch(e, 'provider'));
+            
+            const menuToggleBtn = document.getElementById('menu-toggle-btn');
+            const mainMenu = document.getElementById('main-menu');
+            menuToggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                mainMenu.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!mainMenu.classList.contains('hidden') && !mainMenu.contains(e.target) && !menuToggleBtn.contains(e.target)) {
+                    mainMenu.classList.add('hidden');
+                }
+                if (!e.target.closest('.search-container')) {
+                    document.getElementById('store-search-results').classList.add('hidden');
+                    document.getElementById('provider-store-search-results').classList.add('hidden');
+                }
+            });
+
+            // Listeners do Modal de Auditoria
+            document.getElementById('pallet-has-juncao').addEventListener('change', (e) => {
+                document.getElementById('juncao-number-container').classList.toggle('hidden', !e.target.checked);
+            });
+            document.getElementById('pallet-form').addEventListener('submit', savePalletData);
+            document.getElementById('delete-pallet-btn').addEventListener('click', deletePalletData);
+            document.getElementById('cancel-pallet-form').addEventListener('click', () => {
+                document.getElementById('pallet-form-container').classList.add('hidden');
+            });
+            document.getElementById('finalize-audit-btn').addEventListener('click', handleFinalizeAudit);
+        }
+        
+        const getCollectionPath = (collectionName) => `artifacts/${appId}/users/${currentUserId}/${collectionName}`;
+
+        function setupMasks() {
+            IMask(document.getElementById('placa'), { mask: [{ mask: 'aaa-0000' }, { mask: 'aaa0a00' }] });
+            IMask(document.getElementById('provider-plate'), { mask: [{ mask: 'aaa-0000' }, { mask: 'aaa0a00' }] });
+        }
+        
+        function restrictToNumbers(event) {
+            event.target.value = event.target.value.replace(/[^0-9.-]/g, '');
+        }
+
+        function handleStoreSearch(e, formType) {
+            const searchTerm = e.target.value.toLowerCase();
+            const results = storesCache.filter(store => 
+                store.nomeFantasia.toLowerCase().includes(searchTerm) || 
+                store.nomeReal.toLowerCase().includes(searchTerm) ||
+                store.numero.includes(searchTerm)
+            );
+            renderStoreSearchResults(results, formType);
+        }
+
+        function renderStoreSearchResults(results, formType) {
+            const resultsContainerId = formType === 'entry' ? 'store-search-results' : 'provider-store-search-results';
+            const resultsContainer = document.getElementById(resultsContainerId);
+            resultsContainer.innerHTML = '';
+            if (results.length === 0) {
+                resultsContainer.innerHTML = '<div class="p-2 text-slate-500">Nenhuma loja encontrada.</div>';
+            } else {
+                results.forEach(store => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'p-2 hover:bg-cyan-500/20 cursor-pointer text-slate-300';
+                    resultItem.textContent = `${store.nomeFantasia} (#${store.numero}) - ${store.nomeReal}`;
+                    resultItem.addEventListener('click', () => selectStore(store, formType));
+                    resultsContainer.appendChild(resultItem);
+                });
+            }
+            resultsContainer.classList.remove('hidden');
+        }
+
+        function selectStore(store, formType) {
+            const inputId = formType === 'entry' ? 'store-search-input' : 'provider-store-search';
+            const resultsId = formType === 'entry' ? 'store-search-results' : 'provider-store-search-results';
+            
+            const inputEl = document.getElementById(inputId);
+            inputEl.value = `${store.nomeFantasia} (#${store.numero})`;
+            inputEl.dataset.selectedStore = JSON.stringify(store);
+            
+            document.getElementById(resultsId).classList.add('hidden');
+        }
+
+        async function handleAddStore(e) {
+            e.preventDefault();
+            if (!currentUserId) return;
+            const form = e.target;
+            const newStore = {
+                numero: form['store-number'].value,
+                nomeReal: form['store-real-name'].value,
+                nomeFantasia: form['store-fantasy-name'].value,
+            };
+            try {
+                await addDoc(collection(db, getCollectionPath('lojas')), newStore);
+                showStatusMessage("Loja adicionada com sucesso!");
+                form.reset();
+            } catch (error) {
+                console.error("Erro ao adicionar loja: ", error);
+                showStatusMessage("Erro ao salvar a loja. Verifique suas chaves e regras do Firebase.", "error");
+            }
+        }
+
+        function listenForStores() {
+            if (!currentUserId) return;
+            const storesCol = collection(db, getCollectionPath('lojas'));
+            onSnapshot(storesCol, (snapshot) => {
+                storesCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+                                         .sort((a, b) => a.nomeFantasia.localeCompare(b.nomeFantasia));
+                
+                storesCurrentPage = 1; 
+                renderStoresPage();
+            }, (error) => {
+                 console.error("Erro ao escutar lojas:", error);
+                 showStatusMessage("Não foi possível carregar as lojas. Verifique a configuração e as regras.", "error");
+            });
+        }
+        
+        function renderStoresPage() {
+            const storesListEl = document.getElementById('stores-list');
+            storesListEl.innerHTML = '';
+            const searchTerm = document.getElementById('store-management-search').value.toLowerCase();
+
+            const filteredStores = storesCache.filter(store => {
+                return (store.nomeFantasia.toLowerCase().includes(searchTerm)) ||
+                       (store.nomeReal.toLowerCase().includes(searchTerm)) ||
+                       (store.numero.includes(searchTerm));
+            });
+
+            if (filteredStores.length === 0) {
+                storesListEl.innerHTML = '<p class="text-slate-500">Nenhuma loja encontrada.</p>';
+                renderPaginationControls('stores', 0, storesCurrentPage, changeStoresPage);
+                return;
+            }
+
+            const startIndex = (storesCurrentPage - 1) * storesPerPage;
+            const endIndex = startIndex + storesPerPage;
+            const storesToShow = filteredStores.slice(startIndex, endIndex);
+
+            storesToShow.forEach(store => {
+                const storeDiv = document.createElement('div');
+                storeDiv.className = 'flex justify-between items-center p-3 bg-slate-900/50 rounded-lg border border-slate-700';
+                storeDiv.innerHTML = `<div><p class="font-semibold text-slate-200">${store.nomeFantasia} (#${store.numero})</p><p class="text-sm text-slate-400">${store.nomeReal}</p></div><button class="text-red-500 hover:text-red-400 font-medium" onclick="deleteStore('${store.id}')">Excluir</button>`;
+                storesListEl.appendChild(storeDiv);
+            });
+
+            renderPaginationControls('stores', Math.ceil(filteredStores.length / storesPerPage), storesCurrentPage, changeStoresPage);
+        }
+
+        window.changeStoresPage = (page) => {
+            storesCurrentPage = page;
+            renderStoresPage();
+        }
+
+        window.deleteStore = async (storeId) => {
+            if (!currentUserId) return;
+            // TODO: Substituir confirm por um modal customizado
+            if (confirm('Tem certeza que deseja excluir esta loja? Esta ação não pode ser desfeita.')) {
+                try {
+                    await deleteDoc(doc(db, getCollectionPath('lojas'), storeId));
+                    showStatusMessage('Loja excluída com sucesso.');
+                } catch (error) {
+                    console.error('Erro ao excluir loja:', error);
+                    showStatusMessage('Não foi possível excluir a loja.', 'error');
+                }
+            }
+        };
+
+        async function handleAddEntry(e) {
+            e.preventDefault();
+            if (!currentUserId) return;
+
+            if (currentEntryStores.length === 0) {
+                showStatusMessage("Adicione pelo menos uma loja de destino.", "error");
+                return;
+            }
+
+            const form = e.target;
+            const newEntry = {
+                placa: form.querySelector('#placa').value.toUpperCase(),
+                tipoVeiculo: form.querySelector('#tipo-veiculo').value,
+                conferenteNome: form.querySelector('#conferente-nome').value,
+                conferenteMatricula: form.querySelector('#conferente-matricula').value,
+                auditorNome: form.querySelector('#auditor-nome').value,
+                auditorMatricula: form.querySelector('#auditor-matricula').value,
+                lojas: currentEntryStores,
+                paletes: [], // Inicia com array de paletes vazio
+                dataEntrada: new Date(),
+                dataSaida: null,
+                status: 'ativo'
+            };
+            try {
+                await addDoc(collection(db, getCollectionPath('registros')), newEntry);
+                showStatusMessage("Auditoria iniciada com sucesso!");
+                form.reset();
+                currentEntryStores = [];
+                renderStoresList('entry');
+                document.getElementById('store-search-input').value = '';
+
+            } catch (error) {
+                console.error("Erro ao registrar entrada: ", error);
+                showStatusMessage("Erro ao registrar a entrada. Tente novamente.", "error");
+            }
+        }
+
+        function listenForEntries() {
+            if (!currentUserId) return;
+            const entriesCol = collection(db, getCollectionPath('registros'));
+            onSnapshot(entriesCol, (snapshot) => {
+                const activeListEl = document.getElementById('active-entries-list');
+                
+                activeListEl.innerHTML = '';
+                allEntriesCache = [];
+
+                const activeEntries = [];
+                const finishedEntries = [];
+
+                snapshot.docs.forEach(doc => {
+                    const entry = { id: doc.id, ...doc.data() };
+                    allEntriesCache.push(entry);
+                    if (entry.status === 'ativo') { activeEntries.push(entry); } 
+                    else { finishedEntries.push(entry); }
+                });
+                
+                if (activeEntries.length === 0) {
+                     activeListEl.innerHTML = '<p class="text-slate-500">Nenhum veículo em carregamento no momento.</p>';
+                } else {
+                     activeEntries.sort((a,b) => b.dataEntrada.toDate() - a.dataEntrada.toDate()).forEach(renderActiveEntry);
+                }
+
+                vehicleHistoryCache = finishedEntries.sort((a,b) => {
+                    if (!a.dataSaida || !b.dataSaida) return 0;
+                    return b.dataSaida.toDate() - a.dataSaida.toDate()
+                });
+                vehicleHistoryCurrentPage = 1;
+                renderVehicleHistoryPage();
+            }, (error) => {
+                console.error("Erro ao escutar registros:", error);
+                showStatusMessage("Não foi possível carregar os registros.", "error");
+            });
+        }
+        
+        function renderVehicleHistoryPage() {
+            const historyListEl = document.getElementById('history-entries-list');
+            const historyPlaceholder = document.getElementById('history-placeholder');
+            const searchTerm = document.getElementById('vehicle-history-search').value.toLowerCase();
+            historyListEl.innerHTML = '';
+
+            const filteredHistory = vehicleHistoryCache.filter(entry => {
+                const storesText = Array.isArray(entry.lojas) ? entry.lojas.map(l => `${l.nomeFantasia} ${l.nomeReal} ${l.numero}`).join(' ') : ``;
+                return (entry.placa && entry.placa.toLowerCase().includes(searchTerm)) ||
+                       (entry.conferenteNome && entry.conferenteNome.toLowerCase().includes(searchTerm)) ||
+                       (entry.auditorNome && entry.auditorNome.toLowerCase().includes(searchTerm)) ||
+                       (storesText.toLowerCase().includes(searchTerm));
+            });
+
+            if (filteredHistory.length === 0) {
+                historyPlaceholder.textContent = searchTerm ? 'Nenhum registro encontrado para sua busca.' : 'Nenhum registro no histórico.';
+                historyPlaceholder.classList.remove('hidden');
+                historyListEl.classList.add('hidden');
+                renderPaginationControls('vehicle-history', 0, vehicleHistoryCurrentPage, changeVehicleHistoryPage);
+                return;
+            }
+            
+            historyPlaceholder.classList.add('hidden');
+            historyListEl.classList.remove('hidden');
+            const startIndex = (vehicleHistoryCurrentPage - 1) * vehicleHistoryPerPage;
+            const endIndex = startIndex + vehicleHistoryPerPage;
+            const entriesToShow = filteredHistory.slice(startIndex, endIndex);
+
+            entriesToShow.forEach(renderHistoryEntry);
+            renderPaginationControls('vehicle-history', Math.ceil(filteredHistory.length / vehicleHistoryPerPage), vehicleHistoryCurrentPage, changeVehicleHistoryPage);
+        }
+
+        window.changeVehicleHistoryPage = (page) => {
+            vehicleHistoryCurrentPage = page;
+            renderVehicleHistoryPage();
+        }
+
+        function formatDateTime(timestamp) {
+            if (!timestamp) return 'N/A';
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            return date.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        function renderActiveEntry(entry) {
+            const activeListEl = document.getElementById('active-entries-list');
+            const entryDiv = document.createElement('div');
+            entryDiv.className = 'p-4 bg-slate-700/50 border border-slate-600 rounded-lg card cursor-pointer';
+            entryDiv.setAttribute('onclick', `openAuditModal('${entry.id}')`);
+
+            entryDiv.innerHTML = `
+                <div class="flex flex-wrap justify-between items-start gap-4">
+                    <div class="flex-grow">
+                        <p class="font-bold text-lg text-cyan-400">${entry.placa.toUpperCase() || 'N/A'}</p>
+                        <p class="text-sm text-slate-300"><span class="font-semibold text-slate-400">Conferente:</span> ${entry.conferenteNome}</p>
+                        <p class="text-sm text-slate-300"><span class="font-semibold text-slate-400">Auditor:</span> ${entry.auditorNome}</p>
+                        <p class="text-sm text-slate-400 mt-2"><span class="font-semibold">Início:</span> ${formatDateTime(entry.dataEntrada)}</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="px-2 py-1 text-xs font-semibold text-yellow-200 bg-yellow-500/20 rounded-full">EM AUDITORIA</span>
+                        <p class="text-sm text-slate-400 mt-2">${entry.paletes.length} palete(s) auditado(s)</p>
+                    </div>
+                </div>`;
+            activeListEl.appendChild(entryDiv);
+        }
+
+        function renderHistoryEntry(entry) {
+            const historyListEl = document.getElementById('history-entries-list');
+            const card = document.createElement('div');
+            card.className = 'card bg-slate-800/50 border border-slate-700 rounded-lg p-4 flex flex-col justify-between space-y-3 fade-in';
+            
+            let storesHtml = '';
+            if (Array.isArray(entry.lojas) && entry.lojas.length > 0) {
+                if (entry.lojas.length > 1) {
+                    const collapsedView = `
+                        <div>
+                            <p class="font-semibold text-slate-200">${entry.lojas[0].nomeFantasia} (#${entry.lojas[0].numero})</p>
+                            <p class="text-sm text-slate-400">${entry.lojas[0].nomeReal || ''}</p>
+                            <button class="text-xs text-cyan-400 mt-1 hover:underline" onclick="event.stopPropagation(); toggleStoreList('${entry.id}', true)">+ ${entry.lojas.length - 1} outra(s) loja(s)</button>
+                        </div>
+                    `;
+                    const fullList = entry.lojas.map(l => `<li class="text-sm text-slate-300">${l.nomeFantasia} (#${l.numero}) - ${l.nomeReal}</li>`).join('');
+                    const expandedView = `
+                        <ul class="list-disc list-inside space-y-1">${fullList}</ul>
+                        <button class="text-xs text-cyan-400 mt-1 hover:underline" onclick="event.stopPropagation(); toggleStoreList('${entry.id}', false)">Ver menos</button>
+                    `;
+                    storesHtml = `
+                        <div id="history-stores-collapsed-${entry.id}">${collapsedView}</div>
+                        <div id="history-stores-expanded-${entry.id}" class="hidden">${expandedView}</div>
+                    `;
+                } else {
+                    storesHtml = `<div>
+                        <p class="font-semibold text-slate-200">${entry.lojas[0].nomeFantasia} (#${entry.lojas[0].numero})</p>
+                        <p class="text-sm text-slate-400">${entry.lojas[0].nomeReal || ''}</p>
+                    </div>`;
+                }
+            } 
+
+            card.innerHTML = `
+                <div>
+                    <div class="flex justify-between items-start">
+                        <span class="px-2 py-1 text-xs font-semibold text-cyan-200 bg-cyan-500/20 rounded-full">${entry.placa.toUpperCase() || 'N/A'}</span>
+                    </div>
+                    <div class="mt-3 space-y-2">
+                        ${storesHtml}
+                        <div>
+                            <p class="font-semibold text-slate-200">${entry.auditorNome} (Auditor)</p>
+                            <p class="text-sm text-slate-400">${entry.conferenteNome} (Conferente)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-xs text-slate-400 border-t border-slate-700 pt-2 space-y-1">
+                    <p><span class="font-semibold text-slate-300">Entrada:</span> ${formatDateTime(entry.dataEntrada)}</p>
+                    <p><span class="font-semibold text-slate-300">Saída:</span> ${formatDateTime(entry.dataSaida)}</p>
+                </div>`;
+            historyListEl.appendChild(card);
+        }
+        
+        // --- INÍCIO: NOVAS FUNÇÕES PARA O MODAL DE AUDITORIA ---
+
+        const vehicleTypeConfig = {
+            'toco': { name: 'Toco / 3/4', capacity: 8 },
+            'truck': { name: 'Truck', capacity: 16 },
+            'carreta': { name: 'Carreta', capacity: 30 }
+        };
+
+        window.openAuditModal = (entryId) => {
+            const entry = allEntriesCache.find(e => e.id === entryId);
+            if (!entry) return;
+
+            const modal = document.getElementById('audit-modal');
+            modal.dataset.entryId = entryId;
+            modal.classList.remove('hidden');
+
+            // Preenche o cabeçalho
+            const headerEl = document.getElementById('audit-modal-header');
+            headerEl.innerHTML = `
+                <span><strong>Placa:</strong> ${entry.placa}</span>
+                <span><strong>Veículo:</strong> ${vehicleTypeConfig[entry.tipoVeiculo]?.name || 'N/A'}</span>
+                <span><strong>Conferente:</strong> ${entry.conferenteNome}</span>
+                <span><strong>Auditor:</strong> ${entry.auditorNome}</span>
+            `;
+
+            renderPalletGrid(entry);
+            document.getElementById('pallet-form-container').classList.add('hidden');
+        }
+
+        window.closeAuditModal = () => {
+            const modal = document.getElementById('audit-modal');
+            modal.classList.add('hidden');
+            delete modal.dataset.entryId;
+        }
+        
+        function renderPalletGrid(entry) {
+            const gridEl = document.getElementById('pallet-grid');
+            gridEl.innerHTML = '';
+
+            const capacity = vehicleTypeConfig[entry.tipoVeiculo]?.capacity || 0;
+
+            for(let i = 1; i <= capacity; i++) {
+                const palletData = entry.paletes.find(p => p.posicao === i);
+                
+                const circle = document.createElement('div');
+                circle.className = 'pallet-circle w-24 h-24 rounded-full flex flex-col items-center justify-center cursor-pointer font-bold text-lg';
+                circle.setAttribute('onclick', `showPalletForm(${i})`);
+
+                if (palletData) {
+                    circle.innerHTML = `
+                        <span>#${i}</span>
+                        <span class="text-xs font-normal">${palletData.numero}</span>
+                    `;
+                    if (palletData.temJuncao) {
+                        circle.classList.add('juncao');
+                    } else {
+                        circle.classList.add(palletData.tipo); // 'comum' ou 'amarelo'
+                    }
+                } else {
+                     circle.innerHTML = `<span>#${i}</span>`;
+                }
+                gridEl.appendChild(circle);
+            }
+        }
+
+        window.showPalletForm = (position) => {
+            const entryId = document.getElementById('audit-modal').dataset.entryId;
+            const entry = allEntriesCache.find(e => e.id === entryId);
+            if (!entry) return;
+
+            const formContainer = document.getElementById('pallet-form-container');
+            const form = document.getElementById('pallet-form');
+            form.reset();
+
+            document.getElementById('pallet-position').value = position;
+            document.getElementById('pallet-entry-id').value = entryId;
+            document.getElementById('pallet-position-label').textContent = position;
+            document.getElementById('juncao-number-container').classList.add('hidden');
+
+            const existingPallet = entry.paletes.find(p => p.posicao === position);
+            const deleteBtn = document.getElementById('delete-pallet-btn');
+
+            if (existingPallet) {
+                form.querySelector('#pallet-number').value = existingPallet.numero || '';
+                form.querySelector(`input[name="pallet-type"][value="${existingPallet.tipo || 'comum'}"]`).checked = true;
+                form.querySelector('#pallet-has-juncao').checked = existingPallet.temJuncao || false;
+                if (existingPallet.temJuncao) {
+                    form.querySelector('#juncao-number').value = existingPallet.numeroJuncao || '';
+                    document.getElementById('juncao-number-container').classList.remove('hidden');
+                }
+                form.querySelector('#pallet-obs').value = existingPallet.observacoes || '';
+                deleteBtn.classList.remove('hidden');
+            } else {
+                deleteBtn.classList.add('hidden');
+            }
+
+            formContainer.classList.remove('hidden');
+        }
+
+        async function savePalletData(e) {
+            e.preventDefault();
+            const form = e.target;
+            const position = parseInt(form.querySelector('#pallet-position').value);
+            const entryId = form.querySelector('#pallet-entry-id').value;
+            const entryDocRef = doc(db, getCollectionPath('registros'), entryId);
+            
+            const newPalletData = {
+                posicao: position,
+                numero: form.querySelector('#pallet-number').value,
+                tipo: form.querySelector('input[name="pallet-type"]:checked').value,
+                temJuncao: form.querySelector('#pallet-has-juncao').checked,
+                numeroJuncao: form.querySelector('#pallet-has-juncao').checked ? form.querySelector('#juncao-number').value : null,
+                observacoes: form.querySelector('#pallet-obs').value
+            };
+
+            try {
+                const entryDoc = await getDoc(entryDocRef);
+                const entryData = entryDoc.data();
+                
+                const existingPallets = entryData.paletes || [];
+                const palletIndex = existingPallets.findIndex(p => p.posicao === position);
+
+                if (palletIndex > -1) {
+                    existingPallets[palletIndex] = newPalletData;
+                } else {
+                    existingPallets.push(newPalletData);
+                }
+                
+                await updateDoc(entryDocRef, { paletes: existingPallets });
+                document.getElementById('pallet-form-container').classList.add('hidden');
+                // A atualização do onSnapshot vai recarregar a tela automaticamente.
+            } catch (error) {
+                console.error("Erro ao salvar palete:", error);
+                showStatusMessage("Não foi possível salvar os dados do palete.", "error");
+            }
+        }
+        
+        async function deletePalletData() {
+            const form = document.getElementById('pallet-form');
+            const position = parseInt(form.querySelector('#pallet-position').value);
+            const entryId = form.querySelector('#pallet-entry-id').value;
+            const entryDocRef = doc(db, getCollectionPath('registros'), entryId);
+
+            try {
+                const entryDoc = await getDoc(entryDocRef);
+                const entryData = entryDoc.data();
+                
+                const updatedPallets = entryData.paletes.filter(p => p.posicao !== position);
+                
+                await updateDoc(entryDocRef, { paletes: updatedPallets });
+                document.getElementById('pallet-form-container').classList.add('hidden');
+            } catch (error) {
+                console.error("Erro ao excluir palete:", error);
+                showStatusMessage("Não foi possível excluir os dados do palete.", "error");
+            }
+        }
+
+        async function handleFinalizeAudit() {
+            const entryId = document.getElementById('audit-modal').dataset.entryId;
+            if (!entryId) return;
+
+            // TODO: Substituir confirm por um modal customizado
+            if (confirm('Tem certeza que deseja finalizar esta auditoria?')) {
+                const entryDocRef = doc(db, getCollectionPath('registros'), entryId);
+                try {
+                    await updateDoc(entryDocRef, {
+                        status: 'finalizado',
+                        dataSaida: new Date()
+                    });
+                    showStatusMessage('Auditoria finalizada com sucesso.');
+                    closeAuditModal();
+                } catch (error) {
+                    console.error('Erro ao finalizar auditoria:', error);
+                    showStatusMessage('Não foi possível finalizar a auditoria.', 'error');
+                }
+            }
+        }
+
+        // --- FIM: NOVAS FUNÇÕES PARA O MODAL DE AUDITORIA ---
+
+        async function downloadVehiclePDF() { 
+            loadingOverlay.classList.remove('hidden');
+            loadingText.textContent = 'Gerando Relatório PDF...';
+
+            const startDateStr = document.getElementById('vehicle-filter-start-date').value;
+            const endDateStr = document.getElementById('vehicle-filter-end-date').value;
+            let filteredHistory = vehicleHistoryCache;
+
+            if (startDateStr && endDateStr) {
+                const startDate = new Date(startDateStr + 'T00:00:00');
+                const endDate = new Date(endDateStr + 'T23:59:59');
+                if (startDate > endDate) {
+                    showStatusMessage("A data de início não pode ser maior que a data de fim.", "error");
+                    loadingOverlay.classList.add('hidden');
+                    return;
+                }
+                filteredHistory = vehicleHistoryCache.filter(entry => {
+                    if (!entry.dataSaida) return false;
+                    const exitDate = entry.dataSaida.toDate();
+                    return exitDate >= startDate && exitDate <= endDate;
+                });
+            }
+
+            if (filteredHistory.length === 0) {
+                showStatusMessage("Nenhum registro encontrado para o período selecionado.", "error");
+                loadingOverlay.classList.add('hidden');
+                return;
+            }
+            
+            const reportTitle = "Relatório de Auditorias de Carregamento";
+            const headers = ["Lojas", "Placa", "Auditor", "Conferente", "Entrada", "Saída", "Paletes"];
+            const rows = filteredHistory.map(e => {
+                const storesText = Array.isArray(e.lojas) ? e.lojas.map(l => `${l.nomeFantasia} (#${l.numero})`).join(', ') : ``;
+                return [
+                    storesText,
+                    e.placa,
+                    e.auditorNome,
+                    e.conferenteNome,
+                    formatDateTime(e.dataEntrada),
+                    formatDateTime(e.dataSaida),
+                    e.paletes ? e.paletes.length : 0
+                ]
+            });
+
+            await generateGenericPdf(reportTitle, headers, rows, `relatorio_auditorias_${startDateStr || 'inicio'}_a_${endDateStr || 'fim'}`);
+            loadingOverlay.classList.add('hidden');
+        }
+
+        function handleAddMember() {
+            const nameInput = document.getElementById('provider-member-name');
+            const docInput = document.getElementById('provider-member-doc');
+            const name = nameInput.value.trim();
+            const doc = docInput.value.trim();
+
+            if (!name || !doc) {
+                showStatusMessage("Preencha o nome e o documento do integrante.", "error");
+                return;
+            }
+
+            currentTeamMembers.push({ name, doc });
+            renderTeamMembersList();
+            nameInput.value = '';
+            docInput.value = '';
+            nameInput.focus();
+        }
+
+        function renderTeamMembersList() {
+            const listEl = document.getElementById('team-members-list');
+            listEl.innerHTML = '';
+            if (currentTeamMembers.length > 0) {
+                const title = document.createElement('h4');
+                title.className = 'text-sm font-semibold text-slate-400 mb-2';
+                title.textContent = 'Integrantes Adicionados:';
+                listEl.appendChild(title);
+            }
+            currentTeamMembers.forEach((member, index) => {
+                const memberDiv = document.createElement('div');
+                memberDiv.className = 'flex justify-between items-center p-2 bg-slate-900/50 rounded-md';
+                memberDiv.innerHTML = `
+                    <div>
+                        <p class="font-medium text-slate-300">${member.name}</p>
+                        <p class="text-sm text-slate-500">${member.doc}</p>
+                    </div>
+                    <button type="button" class="text-red-500 hover:text-red-400 text-2xl leading-none" onclick="removeTeamMember(${index})">&times;</button>
+                `;
+                listEl.appendChild(memberDiv);
+            });
+        }
+        
+        window.removeTeamMember = (index) => {
+            currentTeamMembers.splice(index, 1);
+            renderTeamMembersList();
+        }
+
+        function handleAddEntryStore() {
+            const inputEl = document.getElementById('store-search-input');
+            const selectedStoreString = inputEl.dataset.selectedStore;
+
+            if (!selectedStoreString) {
+                showStatusMessage("Por favor, busque e selecione uma loja válida.", "error");
+                return;
+            }
+            const store = JSON.parse(selectedStoreString);
+            
+            if (currentEntryStores.some(s => s.id === store.id)) {
+                showStatusMessage("Essa loja já foi adicionada.", "error");
+                return;
+            }
+
+            currentEntryStores.push(store);
+            renderStoresList('entry');
+            inputEl.value = '';
+            delete inputEl.dataset.selectedStore;
+            inputEl.focus();
+        }
+
+        function handleAddProviderStore() {
+            const inputEl = document.getElementById('provider-store-search');
+            const selectedStoreString = inputEl.dataset.selectedStore;
+
+            if (!selectedStoreString) {
+                showStatusMessage("Por favor, busque e selecione uma loja válida.", "error");
+                return;
+            }
+            const store = JSON.parse(selectedStoreString);
+
+            if (currentProviderStores.some(s => s.id === store.id)) {
+                showStatusMessage("Essa loja já foi adicionada.", "error");
+                return;
+            }
+            
+            currentProviderStores.push(store);
+            renderStoresList('provider');
+            inputEl.value = '';
+            delete inputEl.dataset.selectedStore;
+            inputEl.focus();
+        }
+
+        function renderStoresList(type) {
+            const listId = type === 'entry' ? 'entry-stores-list' : 'provider-stores-list';
+            const storesArray = type === 'entry' ? currentEntryStores : currentProviderStores;
+            const removeFnName = type === 'entry' ? 'removeEntryStore' : 'removeProviderStore';
+            const listEl = document.getElementById(listId);
+            listEl.innerHTML = '';
+
+            if (storesArray.length > 0) {
+                const title = document.createElement('h4');
+                title.className = 'text-sm font-semibold text-slate-400 mb-2';
+                title.textContent = 'Lojas Adicionadas:';
+                listEl.appendChild(title);
+            }
+
+            storesArray.forEach((store, index) => {
+                const storeDiv = document.createElement('div');
+                storeDiv.className = 'flex justify-between items-center p-2 bg-slate-900/50 rounded-md';
+                storeDiv.innerHTML = `
+                    <div>
+                        <p class="font-medium text-slate-300">${store.nomeFantasia} (#${store.numero})</p>
+                        <p class="text-sm text-slate-500">${store.nomeReal}</p>
+                    </div>
+                    <button type="button" class="text-red-500 hover:text-red-400 text-2xl leading-none" onclick="${removeFnName}(${index})">&times;</button>
+                `;
+                listEl.appendChild(storeDiv);
+            });
+        }
+
+        window.removeEntryStore = (index) => {
+            currentEntryStores.splice(index, 1);
+            renderStoresList('entry');
+        }
+
+        window.removeProviderStore = (index) => {
+            currentProviderStores.splice(index, 1);
+            renderStoresList('provider');
+        }
+
+        async function handleAddProvider(e) {
+            e.preventDefault();
+            if (!currentUserId) return;
+            
+            if (currentProviderStores.length === 0) {
+                showStatusMessage("Adicione pelo menos uma loja de destino.", "error");
+                return;
+            }
+            if (currentTeamMembers.length === 0) {
+                showStatusMessage("Adicione pelo menos um integrante à equipe.", "error");
+                return;
+            }
+
+            const form = e.target;
+            const newProvider = {
+                company: form.querySelector('#provider-company').value,
+                team: currentTeamMembers,
+                description: form.querySelector('#provider-description').value,
+                plate: form.querySelector('#provider-plate').value.toUpperCase(),
+                lojas: currentProviderStores,
+                entryTime: new Date(),
+                exitTime: null,
+                status: 'ativo'
+            };
+
+            try {
+                await addDoc(collection(db, getCollectionPath('prestadores')), newProvider);
+                showStatusMessage("Serviço registrado com sucesso!");
+                form.reset();
+                currentTeamMembers = [];
+                currentProviderStores = [];
+                renderTeamMembersList();
+                renderStoresList('provider');
+                document.getElementById('provider-store-search').value = '';
+            } catch (error) {
+                console.error("Erro ao registrar serviço: ", error);
+                showStatusMessage("Erro ao registrar serviço. Tente novamente.", "error");
+            }
+        }
+
+        function listenForProviders() {
+            if (!currentUserId) return;
+            const providersCol = collection(db, getCollectionPath('prestadores'));
+            onSnapshot(providersCol, (snapshot) => {
+                const activeList = document.getElementById('active-providers-list');
+                
+                activeList.innerHTML = '';
+                providerHistoryCache = [];
+                const activeProviders = [];
+                const finishedProviders = [];
+
+                snapshot.docs.forEach(doc => {
+                    const provider = { id: doc.id, ...doc.data() };
+                    if (provider.status === 'ativo') {
+                        activeProviders.push(provider);
+                    } else {
+                        finishedProviders.push(provider);
+                    }
+                });
+
+                if (activeProviders.length === 0) {
+                    activeList.innerHTML = '<p class="text-slate-500">Nenhum prestador de serviço no local.</p>';
+                } else {
+                    activeProviders.sort((a,b) => b.entryTime.toDate() - a.entryTime.toDate()).forEach(renderActiveProvider);
+                }
+
+                providerHistoryCache = finishedProviders.sort((a,b) => {
+                    if(!a.exitTime || !b.exitTime) return 0;
+                    return b.exitTime.toDate() - a.exitTime.toDate()
+                });
+                providerHistoryCurrentPage = 1;
+                renderProviderHistoryPage();
+            });
+        }
+
+        function renderActiveProvider(provider) {
+            const listEl = document.getElementById('active-providers-list');
+            const div = document.createElement('div');
+            div.className = 'p-4 bg-slate-700/50 border border-slate-600 rounded-lg card';
+            
+            let teamHtml = '<li>Nenhum integrante informado</li>';
+            if (Array.isArray(provider.team) && provider.team.length > 0) {
+                teamHtml = provider.team.map(m => `<li class="text-slate-300">${m.name} (${m.doc})</li>`).join('');
+            }
+
+            let storesHtml = '<p class="text-sm text-slate-300">Nenhuma loja informada.</p>';
+            if (Array.isArray(provider.lojas) && provider.lojas.length > 0) {
+                 storesHtml = `<ul class="list-disc list-inside space-y-1">${provider.lojas.map(l => `<li class="text-sm text-slate-300">${l.nomeFantasia} (#${l.numero}) - ${l.nomeReal}</li>`).join('')}</ul>`;
+            } else if (provider.storeName) { // Compatibilidade
+                storesHtml = `<p class="text-sm text-slate-300">${provider.storeName} - ${provider.storeRealName || ''}</p>`;
+            }
+
+            div.innerHTML = `
+                <div class="flex flex-wrap justify-between items-start gap-4">
+                    <div class="flex-grow min-w-0">
+                        <p class="font-bold text-lg text-cyan-400">${provider.company}</p>
+                        <div class="mt-2">
+                            <p class="font-semibold text-slate-400">Lojas de Destino:</p>
+                            ${storesHtml}
+                        </div>
+                        <p class="text-sm text-slate-300 break-words mt-2"><span class="font-semibold text-slate-400">Serviço:</span> ${provider.description}</p>
+                        <div class="text-sm text-slate-400 mt-2">
+                            <span class="font-semibold">Equipe:</span>
+                            <ul class="list-disc list-inside">${teamHtml}</ul>
+                        </div>
+                        ${provider.plate ? `<p class="text-sm text-slate-300 mt-2"><span class="font-semibold text-slate-400">Veículo:</span> ${provider.plate}</p>` : ''}
+                        <p class="text-sm text-slate-400 mt-2"><span class="font-semibold">Entrada:</span> ${formatDateTime(provider.entryTime)}</p>
+                    </div>
+                    <button class="bg-red-500/80 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-500 transform hover:scale-105 self-start" onclick="toggleProviderExitForm('${provider.id}')">
+                        Finalizar Serviço
+                    </button>
+                </div>
+                <div id="provider-exit-form-${provider.id}" class="hidden w-full mt-4 pt-4 border-t border-slate-700">
+                    <form class="flex flex-wrap items-end gap-4" onsubmit="event.preventDefault(); finalizeService('${provider.id}');">
+                        <div>
+                            <label for="provider-exit-time-${provider.id}" class="block text-sm font-medium text-slate-400">Horário de Saída</label>
+                            <input type="datetime-local" id="provider-exit-time-${provider.id}" required class="mt-1 w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md text-slate-300">
+                        </div>
+                        <button type="submit" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-500 transform hover:scale-105">
+                            Confirmar Finalização
+                        </button>
+                    </form>
+                </div>
+            `;
+            listEl.appendChild(div);
+        }
+        
+        window.toggleProviderExitForm = (providerId) => {
+            const exitForm = document.getElementById(`provider-exit-form-${providerId}`);
+            const isHidden = exitForm.classList.contains('hidden');
+            document.querySelectorAll('[id^="provider-exit-form-"]').forEach(form => {
+                if(form.id !== `provider-exit-form-${providerId}`) form.classList.add('hidden');
+            });
+            if (isHidden) {
+                exitForm.classList.remove('hidden');
+                const now = new Date();
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                document.getElementById(`provider-exit-time-${providerId}`).value = now.toISOString().slice(0, 16);
+            } else {
+                exitForm.classList.add('hidden');
+            }
+        };
+
+        window.finalizeService = async (providerId) => {
+            if (!currentUserId) return;
+            const timeInput = document.getElementById(`provider-exit-time-${providerId}`);
+            if (!timeInput.value) {
+                showStatusMessage("Por favor, informe o horário de saída.", "error");
+                return;
+            }
+            try {
+                const providerDoc = doc(db, getCollectionPath('prestadores'), providerId);
+                await updateDoc(providerDoc, {
+                    status: 'finalizado',
+                    exitTime: new Date(timeInput.value)
+                });
+                showStatusMessage('Serviço finalizado com sucesso.');
+            } catch (error) {
+                console.error("Erro ao finalizar serviço:", error);
+                showStatusMessage("Não foi possível finalizar o serviço.", "error");
+            }
+        };
+
+        function renderProviderHistoryPage() {
+            const listEl = document.getElementById('provider-history-list');
+            const placeholder = document.getElementById('provider-history-placeholder');
+            const searchTerm = document.getElementById('provider-history-search').value.toLowerCase();
+            listEl.innerHTML = '';
+            
+            const filteredHistory = providerHistoryCache.filter(p => {
+                const teamString = Array.isArray(p.team) ? p.team.map(m => `${m.name} ${m.doc}`).join(' ') : (p.team || '');
+                const storesText = Array.isArray(p.lojas) ? p.lojas.map(l => `${l.nomeFantasia} ${l.nomeReal} ${l.numero}`).join(' ') : `${p.storeName} ${p.storeRealName}`;
+
+                return (p.company && p.company.toLowerCase().includes(searchTerm)) ||
+                       (storesText.toLowerCase().includes(searchTerm)) ||
+                       (teamString.toLowerCase().includes(searchTerm));
+            });
+
+            if(filteredHistory.length === 0) {
+                placeholder.textContent = searchTerm ? 'Nenhum serviço encontrado para sua busca.' : 'Nenhum serviço no histórico.';
+                placeholder.classList.remove('hidden');
+                listEl.classList.add('hidden');
+                renderPaginationControls('provider-history', 0, providerHistoryCurrentPage, changeProviderHistoryPage);
+                return;
+            }
+            placeholder.classList.add('hidden');
+            listEl.classList.remove('hidden');
+
+            const startIndex = (providerHistoryCurrentPage - 1) * providerHistoryPerPage;
+            const endIndex = startIndex + providerHistoryPerPage;
+            const providersToShow = filteredHistory.slice(startIndex, endIndex);
+
+            providersToShow.forEach(renderProviderHistory);
+            renderPaginationControls('provider-history', Math.ceil(filteredHistory.length / providerHistoryPerPage), providerHistoryCurrentPage, changeProviderHistoryPage);
+        }
+
+        window.changeProviderHistoryPage = (page) => {
+            providerHistoryCurrentPage = page;
+            renderProviderHistoryPage();
+        }
+
+        function renderProviderHistory(provider) {
+            const listEl = document.getElementById('provider-history-list');
+            const card = document.createElement('div');
+            card.className = 'card bg-slate-800/50 border border-slate-700 rounded-lg p-4 flex flex-col justify-between space-y-3 fade-in';
+
+            let teamHtml = '<p class="text-sm text-slate-500">Nenhum integrante informado</p>';
+            if (Array.isArray(provider.team) && provider.team.length > 0) {
+                const THRESHOLD = 2;
+                if (provider.team.length > THRESHOLD) {
+                    const collapsedList = provider.team.slice(0, THRESHOLD).map(m => `<li class="text-sm text-slate-400">${m.name} (${m.doc})</li>`).join('');
+                    const collapsedView = `
+                        <ul class="list-disc list-inside pl-1">${collapsedList}</ul>
+                        <button class="text-xs text-cyan-400 mt-1 hover:underline" onclick="event.stopPropagation(); toggleTeamList('${provider.id}', true)">+ ${provider.team.length - THRESHOLD} outro(s)</button>
+                    `;
+                    const fullList = provider.team.map(m => `<li class="text-sm text-slate-400">${m.name} (${m.doc})</li>`).join('');
+                    const expandedView = `
+                        <ul class="list-disc list-inside pl-1">${fullList}</ul>
+                        <button class="text-xs text-cyan-400 mt-1 hover:underline" onclick="event.stopPropagation(); toggleTeamList('${provider.id}', false)">Ver menos</button>
+                    `;
+                    teamHtml = `
+                        <div id="history-team-collapsed-${provider.id}">${collapsedView}</div>
+                        <div id="history-team-expanded-${provider.id}" class="hidden">${expandedView}</div>
+                    `;
+                } else {
+                    const list = provider.team.map(m => `<li class="text-sm text-slate-400">${m.name} (${m.doc})</li>`).join('');
+                    teamHtml = `<ul class="list-disc list-inside pl-1">${list}</ul>`;
+                }
+            }
+
+            let storesHtml = '';
+            if (Array.isArray(provider.lojas) && provider.lojas.length > 0) {
+                 const THRESHOLD = 1;
+                if (provider.lojas.length > THRESHOLD) {
+                    const collapsedView = `
+                        <div>
+                            <p class="font-semibold text-slate-200">${provider.lojas[0].nomeFantasia} (#${provider.lojas[0].numero})</p>
+                            <p class="text-sm text-slate-400">${provider.lojas[0].nomeReal || ''}</p>
+                            <button class="text-xs text-cyan-400 mt-1 hover:underline" onclick="event.stopPropagation(); toggleProviderStoreList('${provider.id}', true)">+ ${provider.lojas.length - THRESHOLD} outra(s) loja(s)</button>
+                        </div>
+                    `;
+                    const fullList = provider.lojas.map(l => `<li class="text-sm text-slate-300">${l.nomeFantasia} (#${l.numero}) - ${l.nomeReal}</li>`).join('');
+                    const expandedView = `
+                        <ul class="list-disc list-inside space-y-1">${fullList}</ul>
+                        <button class="text-xs text-cyan-400 mt-1 hover:underline" onclick="event.stopPropagation(); toggleProviderStoreList('${provider.id}', false)">Ver menos</button>
+                    `;
+                     storesHtml = `
+                        <div id="history-provider-stores-collapsed-${provider.id}">${collapsedView}</div>
+                        <div id="history-provider-stores-expanded-${provider.id}" class="hidden">${expandedView}</div>
+                    `;
+                } else {
+                    storesHtml = `<div>
+                        <p class="font-semibold text-slate-200">${provider.lojas[0].nomeFantasia} (#${provider.lojas[0].numero})</p>
+                        <p class="text-sm text-slate-400">${provider.lojas[0].nomeReal || ''}</p>
+                    </div>`;
+                }
+            } else if (provider.storeName) { // Compatibilidade
+                storesHtml = `<div>
+                    <p class="font-semibold text-slate-200">${provider.storeName}</p>
+                    <p class="text-sm text-slate-400">${provider.storeRealName || ''}</p>
+                </div>`;
+            }
+
+            card.innerHTML = `
+                <div>
+                    <div class="flex justify-between items-start">
+                        <span class="px-2 py-1 text-xs font-semibold text-green-200 bg-green-500/20 rounded-full">${provider.company}</span>
+                    </div>
+                    <div class="mt-3 space-y-2">
+                        ${storesHtml}
+                        <div>
+                            <p class="font-semibold text-slate-200">Equipe:</p>
+                            ${teamHtml}
+                        </div>
+                    </div>
+                    ${provider.description ? `
+                    <p class="text-sm text-slate-400 mt-2 pt-2 border-t border-slate-700/50 break-words"><strong class="text-slate-300">Serviço:</strong> ${provider.description}</p>
+                    ` : ''}
+                </div>
+                <div class="text-xs text-slate-400 border-t border-slate-700 pt-2 space-y-1">
+                    <p><span class="font-semibold text-slate-300">Entrada:</span> ${formatDateTime(provider.entryTime)}</p>
+                    <p><span class="font-semibold text-slate-300">Saída:</span> ${formatDateTime(provider.exitTime)}</p>
+                </div>
+            `;
+            listEl.appendChild(card);
+        }
+
+        async function downloadProvidersPDF() {
+            loadingOverlay.classList.remove('hidden');
+            loadingText.textContent = 'Gerando Relatório PDF...';
+
+            let filteredHistory = providerHistoryCache;
+            const startDateStr = document.getElementById('provider-filter-start-date').value;
+            const endDateStr = document.getElementById('provider-filter-end-date').value;
+
+            if (startDateStr && endDateStr) {
+                const startDate = new Date(startDateStr + 'T00:00:00');
+                const endDate = new Date(endDateStr + 'T23:59:59');
+                if (startDate > endDate) {
+                    showStatusMessage("A data de início não pode ser maior que a data de fim.", "error");
+                    loadingOverlay.classList.add('hidden');
+                    return;
+                }
+                filteredHistory = providerHistoryCache.filter(p => {
+                    if (!p.exitTime) return false;
+                    const exitDate = p.exitTime.toDate();
+                    return exitDate >= startDate && exitDate <= endDate;
+                });
+            }
+
+            if (filteredHistory.length === 0) {
+                showStatusMessage("Nenhum histórico de serviço para exportar.", "error");
+                loadingOverlay.classList.add('hidden');
+                return;
+            }
+
+            const reportTitle = "Relatório de Prestadores de Serviço";
+            const headers = ["Empresa", "Lojas", "Equipe", "Descrição", "Entrada", "Saída"];
+            const rows = filteredHistory.map(p => {
+                const team = Array.isArray(p.team) ? p.team.map(m => `${m.name} (${m.doc})`).join(', ') : 'N/A';
+                const storesText = Array.isArray(p.lojas) ? p.lojas.map(l => `${l.nomeFantasia} (#${l.numero})`).join(', ') : p.storeName;
+                return [p.company, storesText, team, p.description, formatDateTime(p.entryTime), formatDateTime(p.exitTime)];
+            });
+            
+            await generateGenericPdf(reportTitle, headers, rows, `relatorio_servicos_${startDateStr}_a_${endDateStr}`);
+            loadingOverlay.classList.add('hidden');
+        }
+
+        const handleReportFileSelect = (event) => {
+            const previewContainer = document.getElementById('report-image-previews');
+            const files = Array.from(event.target.files);
+
+            files.forEach(file => {
+                if (!file.type.startsWith('image/')) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const MAX_WIDTH = 800;
+                        const MAX_HEIGHT = 800;
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > MAX_WIDTH) {
+                                height *= MAX_WIDTH / width;
+                                width = MAX_WIDTH;
+                            }
+                        } else {
+                            if (height > MAX_HEIGHT) {
+                                width *= MAX_HEIGHT / height;
+                                height = MAX_HEIGHT;
+                            }
+                        }
+
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        const compressedImgData = canvas.toDataURL('image/jpeg', 0.7);
+                        
+                        currentReportImages.push(compressedImgData);
+
+                        const imgPreviewWrapper = document.createElement('div');
+                        imgPreviewWrapper.className = 'relative group aspect-square';
+                        imgPreviewWrapper.innerHTML = `
+                            <img src="${compressedImgData}" class="w-full h-full object-cover rounded-lg border border-slate-700">
+                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 flex items-center justify-center rounded-lg">
+                                <button type="button" class="remove-report-photo-btn text-white opacity-0 group-hover:opacity-100 p-2 bg-red-600 rounded-full">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+                            </div>
+                        `;
+                        
+                        imgPreviewWrapper.querySelector('.remove-report-photo-btn').addEventListener('click', () => {
+                            const index = currentReportImages.indexOf(compressedImgData);
+                            if (index > -1) {
+                                currentReportImages.splice(index, 1);
+                            }
+                            imgPreviewWrapper.remove();
+                        });
+                        previewContainer.appendChild(imgPreviewWrapper);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+            event.target.value = '';
+        };
+
+        async function handleAddReport(e) {
+            e.preventDefault();
+            if (!currentUserId) return;
+            const form = e.target;
+            const newReport = {
+                title: form.querySelector('#report-title').value,
+                content: form.querySelector('#report-content').value,
+                images: currentReportImages,
+                createdAt: new Date()
+            };
+
+            try {
+                await addDoc(collection(db, getCollectionPath('relatorios')), newReport);
+                showStatusMessage("Relatório salvo com sucesso!");
+                form.reset();
+                currentReportImages = [];
+                document.getElementById('report-image-previews').innerHTML = '';
+            } catch (error) {
+                console.error("Erro ao salvar relatório: ", error);
+                showStatusMessage("Erro ao salvar o relatório. Tente novamente.", "error");
+            }
+        }
+
+        function listenForReports() {
+            if (!currentUserId) return;
+            const reportsCol = collection(db, getCollectionPath('relatorios'));
+            onSnapshot(reportsCol, (snapshot) => {
+                reportsCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+                                         .sort((a,b) => b.createdAt.toDate() - a.createdAt.toDate());
+                reportsCurrentPage = 1;
+                renderReportsPage();
+            });
+        }
+        
+        function renderReportsPage() {
+            const listEl = document.getElementById('reports-list');
+            listEl.innerHTML = '';
+
+            if (reportsCache.length === 0) {
+                listEl.innerHTML = '<p class="text-slate-500">Nenhum relatório cadastrado.</p>';
+                renderPaginationControls('reports', 0, reportsCurrentPage, changeReportsPage);
+                return;
+            }
+            
+            const startIndex = (reportsCurrentPage - 1) * reportsPerPage;
+            const endIndex = startIndex + reportsPerPage;
+            const reportsToShow = reportsCache.slice(startIndex, endIndex);
+
+            reportsToShow.forEach(report => {
+                const div = document.createElement('div');
+                div.className = 'p-4 bg-slate-900/50 border border-slate-700 rounded-lg flex flex-col gap-4';
+                const isLong = report.content.length > 150;
+                const truncatedContent = isLong ? report.content.substring(0, 150) + '...' : report.content;
+
+                let imagesHtml = '';
+                if (report.images && report.images.length > 0) {
+                    imagesHtml += '<div class="grid grid-cols-4 gap-2 mt-2">';
+                    report.images.forEach(imgSrc => {
+                        imagesHtml += `<div class="aspect-square"><img src="${imgSrc}" class="w-full h-full object-cover rounded-md border border-slate-700"></div>`;
+                    });
+                    imagesHtml += '</div>';
+                }
+
+                div.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start">
+                            <div class="min-w-0 flex-1">
+                                <h4 class="font-bold text-lg text-slate-200">${report.title}</h4>
+                                <p class="text-sm text-slate-400 mb-2">${formatDateTime(report.createdAt)}</p>
+                                <div id="report-content-${report.id}">
+                                    <p class="text-slate-300 whitespace-pre-wrap break-words">${truncatedContent}</p>
+                                    ${isLong ? `<button class="text-cyan-400 hover:underline text-sm mt-2" onclick="toggleReportContent('${report.id}', true)">Ver mais</button>` : ''}
+                                </div>
+                                <div id="report-full-content-${report.id}" class="hidden">
+                                    <p class="text-slate-300 whitespace-pre-wrap break-words">${report.content}</p>
+                                    <button class="text-cyan-400 hover:underline text-sm mt-2" onclick="toggleReportContent('${report.id}', false)">Ver menos</button>
+                                </div>
+                                ${imagesHtml}
+                            </div>
+                            <button class="text-red-500 hover:text-red-400 font-bold text-2xl leading-none ml-4 flex-shrink-0" onclick="deleteReport('${report.id}')">&times;</button>
+                        </div>
+                    </div>
+                    <div class="border-t border-slate-700 pt-3 flex justify-end">
+                         <button class="bg-green-600/80 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 text-sm" onclick="generateReportPdf('${report.id}')">
+                            Exportar PDF
+                        </button>
+                    </div>
+                `;
+                listEl.appendChild(div);
+            });
+
+            renderPaginationControls('reports', Math.ceil(reportsCache.length / reportsPerPage), reportsCurrentPage, changeReportsPage);
+        }
+        
+        window.changeReportsPage = (page) => {
+            reportsCurrentPage = page;
+            renderReportsPage();
+        }
+
+        window.toggleReportContent = (reportId, showFull) => {
+            const truncatedDiv = document.getElementById(`report-content-${reportId}`);
+            const fullDiv = document.getElementById(`report-full-content-${reportId}`);
+            if (showFull) {
+                truncatedDiv.classList.add('hidden');
+                fullDiv.classList.remove('hidden');
+            } else {
+                truncatedDiv.classList.remove('hidden');
+                fullDiv.classList.add('hidden');
+            }
+        };
+
+        window.toggleTeamList = (providerId, showExpanded) => {
+            const collapsedDiv = document.getElementById(`history-team-collapsed-${providerId}`);
+            const expandedDiv = document.getElementById(`history-team-expanded-${providerId}`);
+            if (showExpanded) {
+                collapsedDiv.classList.add('hidden');
+                expandedDiv.classList.remove('hidden');
+            } else {
+                collapsedDiv.classList.remove('hidden');
+                expandedDiv.classList.add('hidden');
+            }
+        };
+
+        window.deleteReport = async (reportId) => {
+            if (!currentUserId) return;
+            if (confirm('Tem certeza que deseja excluir este relatório?')) {
+                try {
+                    await deleteDoc(doc(db, getCollectionPath('relatorios'), reportId));
+                    showStatusMessage('Relatório excluído com sucesso.');
+                } catch (error) {
+                    console.error("Erro ao excluir relatório:", error);
+                    showStatusMessage("Não foi possível excluir o relatório.", "error");
+                }
+            }
+        };
+
+        window.toggleStoreList = (entryId, showExpanded) => {
+            const collapsedDiv = document.getElementById(`history-stores-collapsed-${entryId}`);
+            const expandedDiv = document.getElementById(`history-stores-expanded-${entryId}`);
+            if (showExpanded) {
+                collapsedDiv.classList.add('hidden');
+                expandedDiv.classList.remove('hidden');
+            } else {
+                collapsedDiv.classList.remove('hidden');
+                expandedDiv.classList.add('hidden');
+            }
+        };
+        
+        window.toggleProviderStoreList = (providerId, showExpanded) => {
+            const collapsedDiv = document.getElementById(`history-provider-stores-collapsed-${providerId}`);
+            const expandedDiv = document.getElementById(`history-provider-stores-expanded-${providerId}`);
+            if (showExpanded) {
+                collapsedDiv.classList.add('hidden');
+                expandedDiv.classList.remove('hidden');
+            } else {
+                collapsedDiv.classList.remove('hidden');
+                expandedDiv.classList.add('hidden');
+            }
+        };
+
+        function setDefaultDateFilters() {
+            const endDateEl = document.getElementById('dash-end-date');
+            const startDateEl = document.getElementById('dash-start-date');
+
+            if (!endDateEl.value) {
+                const today = new Date();
+                endDateEl.value = today.toISOString().split('T')[0];
+            }
+
+            if (!startDateEl.value) {
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(new Date().getDate() - 30);
+                startDateEl.value = thirtyDaysAgo.toISOString().split('T')[0];
+            }
+        }
+
+        function updateDashboard() {
+            setDefaultDateFilters();
+            
+            const startDateStr = document.getElementById('dash-start-date').value;
+            const endDateStr = document.getElementById('dash-end-date').value;
+
+            const startDate = new Date(startDateStr + 'T00:00:00');
+            const endDate = new Date(endDateStr + 'T23:59:59');
+
+            const filteredVehicleData = vehicleHistoryCache.filter(entry => {
+                if (!entry.dataSaida) return false;
+                const exitDate = entry.dataSaida.toDate();
+                return exitDate >= startDate && exitDate <= endDate;
+            });
+            const filteredProviderData = providerHistoryCache.filter(p => {
+                if (!p.exitTime) return false;
+                const exitDate = p.exitTime.toDate();
+                return exitDate >= startDate && exitDate <= endDate;
+            });
+
+            const chartsContainer = document.getElementById('charts-container');
+            const noDataMessage = document.getElementById('no-data-message');
+            const kpiContainer = document.getElementById('kpi-container');
+
+            if (filteredVehicleData.length === 0 && filteredProviderData.length === 0) {
+                chartsContainer.classList.add('hidden');
+                kpiContainer.classList.add('hidden');
+                noDataMessage.classList.remove('hidden');
+                Object.values(chartInstances).forEach(chart => chart.destroy());
+                chartInstances = {};
+                return;
+            }
+
+            chartsContainer.classList.remove('hidden');
+            kpiContainer.classList.remove('hidden');
+            noDataMessage.classList.add('hidden');
+
+            updateKPIs(filteredVehicleData, filteredProviderData);
+            
+            renderCombinedEntriesOverTime(filteredVehicleData, filteredProviderData);
+            renderActivityByHour(filteredVehicleData, filteredProviderData);
+            renderActivityByWeekday(filteredVehicleData, filteredProviderData);
+            renderTopNChart('topStoresChart', filteredVehicleData, 'lojas', 'Top 5 Lojas (Carga/Descarga)');
+            renderTopNChart('topCompaniesChart', filteredProviderData, 'company', 'Top 5 Empresas de Serviço');
+        }
+
+        function updateKPIs(vehicleData, providerData) {
+            document.getElementById('kpi-total-entries').textContent = vehicleData.length;
+            document.getElementById('kpi-total-services').textContent = providerData.length;
+
+            const totalDwellTime = vehicleData.reduce((acc, entry) => {
+                if (entry.dataEntrada && entry.dataSaida) {
+                    const dwell = entry.dataSaida.toDate() - entry.dataEntrada.toDate();
+                    return acc + dwell;
+                }
+                return acc;
+            }, 0);
+            const avgDwellTimeMs = vehicleData.length > 0 ? totalDwellTime / vehicleData.length : 0;
+            const avgDwellTimeMin = Math.round(avgDwellTimeMs / 60000);
+            document.getElementById('kpi-avg-time').textContent = `${avgDwellTimeMin} min`;
+        }
+        
+        function getTopN(data, key, n) {
+            const counts = data.reduce((acc, entry) => {
+                if (key === 'lojas') {
+                    if (Array.isArray(entry.lojas)) {
+                        entry.lojas.forEach(loja => {
+                            const item = loja.nomeFantasia;
+                            if(item) acc[item] = (acc[item] || 0) + 1;
+                        });
+                    }
+                } else {
+                    const item = entry[key];
+                    if(item) acc[item] = (acc[item] || 0) + 1;
+                }
+                return acc;
+            }, {});
+
+            return Object.entries(counts)
+                .sort(([, a], [, b]) => b - a)
+                .slice(0, n)
+                .map(([label, count]) => ({ label, count }));
+        }
+
+        function renderCombinedEntriesOverTime(vehicleData, providerData) {
+            const combinedData = {};
+            vehicleData.forEach(entry => {
+                if(entry.dataSaida) {
+                    const day = entry.dataSaida.toDate().toISOString().split('T')[0];
+                    if(!combinedData[day]) combinedData[day] = { vehicles: 0, providers: 0 };
+                    combinedData[day].vehicles++;
+                }
+            });
+            providerData.forEach(entry => {
+                if(entry.exitTime) {
+                    const day = entry.exitTime.toDate().toISOString().split('T')[0];
+                    if(!combinedData[day]) combinedData[day] = { vehicles: 0, providers: 0 };
+                    combinedData[day].providers++;
+                }
+            });
+
+            const sortedDays = Object.keys(combinedData).sort();
+            const labels = sortedDays.map(day => new Date(day + 'T00:00:00').toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'}));
+            const vehicleCounts = sortedDays.map(day => combinedData[day].vehicles);
+            const providerCounts = sortedDays.map(day => combinedData[day].providers);
+
+            const config = {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { 
+                            label: 'Auditorias', 
+                            data: vehicleCounts, 
+                            borderColor: '#06b6d4',
+                            backgroundColor: 'rgba(6, 182, 212, 0.15)',
+                            fill: true, tension: 0.4,
+                            pointBackgroundColor: '#06b6d4', pointBorderColor: '#0f172a',
+                            pointHoverBackgroundColor: '#fff', pointHoverBorderColor: '#06b6d4'
+                        },
+                        { 
+                            label: 'Serviços', 
+                            data: providerCounts, 
+                            borderColor: '#22c55e',
+                            backgroundColor: 'rgba(34, 197, 94, 0.15)',
+                            fill: true, tension: 0.4,
+                            pointBackgroundColor: '#22c55e', pointBorderColor: '#0f172a',
+                            pointHoverBackgroundColor: '#fff', pointHoverBorderColor: '#22c55e'
+                        }
+                    ]
+                },
+                options: { 
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, grid: { color: Chart.defaults.borderColor } }, x: { grid: { color: Chart.defaults.borderColor } } },
+                    plugins: { legend: { position: 'top', labels: { color: '#e2e8f0' } } },
+                    interaction: { intersect: false, mode: 'index' }
+                }
+            };
+            renderChart('entriesOverTimeChart', config);
+        }
+
+        function renderActivityByHour(vehicleData, providerData) {
+            const hours = Array(24).fill(0);
+            vehicleData.forEach(e => hours[e.dataEntrada.toDate().getHours()]++);
+            providerData.forEach(p => hours[p.entryTime.toDate().getHours()]++);
+            
+            const ctx = document.getElementById('activityByHourChart').getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 320);
+            gradient.addColorStop(0, 'rgba(251, 191, 36, 1)');
+            gradient.addColorStop(1, 'rgba(217, 119, 6, 0.7)');
+
+            const config = {
+                type: 'bar',
+                data: {
+                    labels: Array.from({length: 24}, (_, i) => `${String(i).padStart(2, '0')}h`),
+                    datasets: [{
+                        label: 'Total de Entradas por Hora',
+                        data: hours,
+                        backgroundColor: gradient,
+                        borderRadius: 4
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, grid: { color: Chart.defaults.borderColor } }, x: { grid: { color: Chart.defaults.borderColor } } }
+                }
+            };
+            renderChart('activityByHourChart', config);
+        }
+
+        function renderActivityByWeekday(vehicleData, providerData) {
+            const weekdays = Array(7).fill(0);
+            const weekdayLabels = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+            vehicleData.forEach(e => weekdays[e.dataEntrada.toDate().getDay()]++);
+            providerData.forEach(p => weekdays[p.entryTime.toDate().getDay()]++);
+
+            const ctx = document.getElementById('activityByWeekdayChart').getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 320);
+            gradient.addColorStop(0, 'rgba(236, 72, 153, 1)');
+            gradient.addColorStop(1, 'rgba(190, 24, 93, 0.7)');
+
+            const config = {
+                type: 'bar',
+                data: {
+                    labels: weekdayLabels,
+                    datasets: [{
+                        label: 'Total de Entradas por Dia da Semana',
+                        data: weekdays,
+                        backgroundColor: gradient,
+                        borderRadius: 4
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, grid: { color: Chart.defaults.borderColor } }, x: { grid: { color: Chart.defaults.borderColor } } }
+                }
+            };
+            renderChart('activityByWeekdayChart', config);
+        }
+
+        function renderTopNChart(canvasId, data, key, label) {
+            const topData = getTopN(data, key, 5);
+            const labels = topData.map(d => d.label);
+            const counts = topData.map(d => d.count);
+            
+            const colors = {
+                'topStoresChart': ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'],
+                'topCompaniesChart': ['#15803d', '#16a34a', '#22c55e', '#4ade80', '#86efac']
+            };
+
+            const config = {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: counts,
+                        backgroundColor: colors[canvasId] || 'rgba(107, 114, 128, 0.7)',
+                        borderRadius: 4
+                    }]
+                },
+                options: { 
+                    indexAxis: 'y', 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                        x: { 
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,
+                                callback: function(value) {if (Number.isInteger(value)) {return value;}}
+                            },
+                             grid: { color: Chart.defaults.borderColor }
+                        },
+                        y: { grid: { color: 'transparent' } }
+                    } 
+                }
+            };
+            renderChart(canvasId, config);
+        }
+
+        function renderChart(canvasId, config) {
+            if (chartInstances[canvasId]) {
+                chartInstances[canvasId].destroy();
+            }
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            chartInstances[canvasId] = new Chart(ctx, config);
+        }
+        
+        function renderPaginationControls(type, totalPages, currentPage, changePageFn) {
+            const paginationEl = document.getElementById(`${type}-pagination-controls`);
+            if (!paginationEl) return;
+            paginationEl.innerHTML = '';
+
+            if (totalPages <= 1) return;
+
+            const createButton = (page, text = page) => {
+                const button = document.createElement('button');
+                button.textContent = text;
+                button.className = `px-3 py-1 rounded-md text-sm transition-colors ${page === currentPage ? 'bg-cyan-600 text-white font-bold' : 'text-slate-400 hover:bg-slate-700 hover:text-cyan-300'}`;
+                if (page) {
+                    button.onclick = () => changePageFn(page);
+                } else {
+                    button.className = 'px-3 py-1 text-slate-500 cursor-default';
+                    button.disabled = true;
+                }
+                return button;
+            };
+
+            const prevButton = document.createElement('button');
+            prevButton.textContent = '«';
+            prevButton.className = 'px-3 py-1 rounded-md text-sm text-cyan-400 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed';
+            prevButton.disabled = currentPage === 1;
+            prevButton.onclick = () => changePageFn(currentPage - 1);
+            paginationEl.appendChild(prevButton);
+
+            const pagesToShow = [];
+            if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) {
+                    pagesToShow.push(i);
+                }
+            } else {
+                pagesToShow.push(1);
+                if (currentPage > 3) pagesToShow.push('...');
+                if (currentPage > 2) pagesToShow.push(currentPage - 1);
+                if (currentPage !== 1 && currentPage !== totalPages) pagesToShow.push(currentPage);
+                if (currentPage < totalPages - 1) pagesToShow.push(currentPage + 1);
+                if (currentPage < totalPages - 2) pagesToShow.push('...');
+                pagesToShow.push(totalPages);
+            }
+            
+            [...new Set(pagesToShow)].forEach(page => {
+                paginationEl.appendChild(createButton(page === '...' ? null : page, page));
+            });
+
+            const nextButton = document.createElement('button');
+            nextButton.textContent = '»';
+            nextButton.className = 'px-3 py-1 rounded-md text-sm text-cyan-400 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed';
+            nextButton.disabled = currentPage === totalPages;
+            nextButton.onclick = () => changePageFn(currentPage + 1);
+            paginationEl.appendChild(nextButton);
+        }
+
+        async function generateGenericPdf(title, headers, rows, filename) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: "landscape" });
+
+            doc.setFontSize(18);
+            doc.text(title, 14, 22);
+            doc.setFontSize(11);
+            doc.setTextColor(100);
+            doc.text(`Relatório gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 30);
+
+            doc.autoTable({
+                head: [headers],
+                body: rows,
+                startY: 35,
+                theme: 'grid',
+                headStyles: { fillColor: [14, 116, 144] }, // tom de ciano escuro
+                styles: { fontSize: 8 },
+                margin: { top: 30 }
+            });
+
+            doc.save(`${filename}.pdf`);
+        }
+        
+        window.generateReportPdf = async (reportId) => {
+            loadingOverlay.classList.remove('hidden');
+            loadingText.textContent = 'Gerando PDF do Relatório...';
+
+            const report = reportsCache.find(r => r.id === reportId);
+            if (!report) {
+                showStatusMessage("Relatório não encontrado.", "error");
+                loadingOverlay.classList.add('hidden');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const margin = 15;
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const usableWidth = pageWidth - 2 * margin;
+
+            doc.setFontSize(20);
+            doc.setFont('helvetica', 'bold');
+            doc.text(report.title, margin, 20);
+
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(100);
+            doc.text(`Data: ${formatDateTime(report.createdAt)}`, margin, 28);
+
+            doc.setFontSize(12);
+            doc.setTextColor(0);
+            const splitContent = doc.splitTextToSize(report.content, usableWidth);
+            let yPosition = 40;
+            doc.text(splitContent, margin, yPosition);
+            yPosition += (splitContent.length * 7) + 10; 
+
+            if (report.images && report.images.length > 0) {
+                for (const 
+                                 [index, imgSrc] of report.images.entries()) {
+                    // Verifica se há espaço na página atual para a imagem
+                    // A altura aproximada da imagem é 60mm, com margem.
+                    if (yPosition > pageHeight - margin - 60) {
+                        doc.addPage();
+                        yPosition = margin;
+                    }
+
+                    try {
+                        doc.text(`Imagem ${index + 1}:`, margin, yPosition);
+                        yPosition += 5; // Espaço entre o texto e a imagem
+                        
+                        // Adiciona a imagem ao PDF. As imagens estão em formato base64.
+                        // A imagem é redimensionada para a largura útil da página, mantendo uma proporção 16:9.
+                        const imgHeight = (usableWidth * 9) / 16;
+                        doc.addImage(imgSrc, 'JPEG', margin, yPosition, usableWidth, imgHeight); 
+                        yPosition += imgHeight + 10; // Atualiza a posição Y para o próximo elemento
+                    } catch (e) {
+                        console.error("Erro ao adicionar imagem ao PDF:", e);
+                        doc.text(`[Erro ao carregar imagem ${index + 1}]`, margin, yPosition);
+                        yPosition += 15;
+                    }
+                }
+            }
+
+            // Salva o arquivo PDF
+            doc.save(`relatorio_${report.title.replace(/\s+/g, '_')}_${report.id.substring(0, 6)}.pdf`);
+            
+            // Esconde a tela de carregamento
+            loadingOverlay.classList.add('hidden');
+        };
+
+    </script>
+</body>
+</html>

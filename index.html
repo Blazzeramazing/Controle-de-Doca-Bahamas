@@ -232,7 +232,7 @@
                 <div class="card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl mb-8">
                     <h2 class="text-2xl font-semibold mb-4 text-white">Registrar Nova Auditoria</h2>
                     <form id="entry-form" class="space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             <div>
                                 <label for="conferente-nome" class="block text-sm font-medium text-slate-400 mb-1">Nome do Conferente</label>
                                 <input type="text" id="conferente-nome" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
@@ -244,6 +244,10 @@
                              <div>
                                 <label for="placa" class="block text-sm font-medium text-slate-400 mb-1">Placa do Veículo</label>
                                 <input type="text" id="placa" name="placa" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md uppercase focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200" placeholder="AAA-1234 ou ABC1D23">
+                            </div>
+                            <div>
+                                <label for="doca-number" class="block text-sm font-medium text-slate-400 mb-1">Nº da Doca</label>
+                                <input type="text" id="doca-number" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
                             </div>
                             <div>
                                 <label for="auditor-nome" class="block text-sm font-medium text-slate-400 mb-1">Nome do Auditor (Prevenção)</label>
@@ -850,6 +854,7 @@
             document.getElementById('conferente-matricula').addEventListener('input', restrictToNumbers);
             document.getElementById('auditor-matricula').addEventListener('input', restrictToNumbers);
             document.getElementById('provider-member-doc').addEventListener('input', restrictToNumbers);
+            document.getElementById('doca-number').addEventListener('input', restrictToNumbers);
 
             const entryStoreSearch = document.getElementById('store-search-input');
             entryStoreSearch.addEventListener('input', (e) => handleStoreSearch(e, 'entry'));
@@ -1034,6 +1039,7 @@
             const form = e.target;
             const newEntry = {
                 placa: form.querySelector('#placa').value.toUpperCase(),
+                doca: form.querySelector('#doca-number').value,
                 tipoVeiculo: form.querySelector('#tipo-veiculo').value,
                 conferenteNome: form.querySelector('#conferente-nome').value,
                 conferenteMatricula: form.querySelector('#conferente-matricula').value,
@@ -1159,7 +1165,7 @@
             entryDiv.innerHTML = `
                 <div class="flex flex-wrap justify-between items-start gap-4">
                     <div class="flex-grow">
-                        <p class="font-bold text-lg text-cyan-400">${entry.placa.toUpperCase() || 'N/A'}</p>
+                        <p class="font-bold text-lg text-cyan-400">${entry.placa.toUpperCase() || 'N/A'} <span class="text-base text-slate-400 font-medium">(Doca: ${entry.doca || 'N/A'})</span></p>
                         <p class="text-sm text-slate-300"><span class="font-semibold text-slate-400">Conferente:</span> ${entry.conferenteNome}</p>
                         <p class="text-sm text-slate-300"><span class="font-semibold text-slate-400">Auditor:</span> ${entry.auditorNome}</p>
                         <p class="text-sm text-slate-400 mt-2"><span class="font-semibold">Início:</span> ${formatDateTime(entry.dataEntrada)}</p>
@@ -1258,6 +1264,7 @@
             const headerEl = document.getElementById('audit-modal-header');
             headerEl.innerHTML = `
                 <span><strong>Placa:</strong> ${entry.placa}</span>
+                <span><strong>Doca:</strong> ${entry.doca || 'N/A'}</span>
                 <span><strong>Veículo:</strong> ${vehicleTypeConfig[entry.tipoVeiculo]?.name || 'N/A'}</span>
                 <span><strong>Conferente:</strong> ${entry.conferenteNome}</span>
                 <span><strong>Auditor:</strong> ${entry.auditorNome}</span>
@@ -1445,6 +1452,7 @@
 
             headerEl.innerHTML = `
                 <span><strong>Placa:</strong> ${entry.placa}</span>
+                <span><strong>Doca:</strong> ${entry.doca || 'N/A'}</span>
                 <span><strong>Veículo:</strong> ${vehicleTypeConfig[entry.tipoVeiculo]?.name || 'N/A'}</span>
                 <span><strong>Conferente:</strong> ${entry.conferenteNome} (#${entry.conferenteMatricula})</span>
                 <span><strong>Auditor:</strong> ${entry.auditorNome} (#${entry.auditorMatricula})</span>
@@ -1517,6 +1525,8 @@
             doc.setTextColor(100);
             doc.text(`Veículo: ${vehicleTypeConfig[entry.tipoVeiculo]?.name || 'N/A'}`, 14, yPosition);
             yPosition += 5;
+            doc.text(`Doca: ${entry.doca || 'N/A'}`, 14, yPosition);
+            yPosition += 5;
             doc.text(`Auditor: ${entry.auditorNome} (#${entry.auditorMatricula})`, 14, yPosition);
             yPosition += 5;
             doc.text(`Conferente: ${entry.conferenteNome} (#${entry.conferenteMatricula})`, 14, yPosition);
@@ -1542,6 +1552,10 @@
 
             const addPalletTable = (title, data, headers, headColor) => {
                 if (data.length > 0) {
+                     if (yPosition + 30 > doc.internal.pageSize.getHeight()) { // Check if new table fits
+                        doc.addPage();
+                        yPosition = 20;
+                     }
                      doc.autoTable({
                         startY: yPosition,
                         head: [headers],
@@ -1597,12 +1611,13 @@
             }
             
             const reportTitle = "Relatório de Auditorias de Carregamento";
-            const headers = ["Lojas", "Placa", "Auditor", "Conferente", "Entrada", "Saída", "Paletes"];
+            const headers = ["Lojas", "Placa", "Doca", "Auditor", "Conferente", "Entrada", "Saída", "Paletes"];
             const rows = filteredHistory.map(e => {
                 const storesText = Array.isArray(e.lojas) ? e.lojas.map(l => `${l.nomeFantasia} (#${l.numero})`).join(', ') : ``;
                 return [
                     storesText,
                     e.placa,
+                    e.doca || 'N/A',
                     e.auditorNome,
                     e.conferenteNome,
                     formatDateTime(e.dataEntrada),

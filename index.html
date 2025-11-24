@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Controle de Doca - CD Prevenção</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚛</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -18,6 +18,7 @@
     <style>
         body { 
             font-family: 'Inter', sans-serif;
+            overscroll-behavior-y: none; /* Previne refresh ao puxar no mobile */
         }
         ::selection {
             background-color: rgba(6, 182, 212, 0.5);
@@ -94,10 +95,23 @@
             to { transform: translate(-50%, -50%) rotate(360deg); }
         }
         
-        /* Estilos do Modal de Auditoria */
-        #audit-modal-content, #history-details-modal-content {
-            max-height: 90vh;
+        /* SCROLLBAR CUSTOMIZADA PARA OS MODAIS E LISTAS */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
         }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
         .pallet-circle {
             background-color: #374151; /* gray-700 */
             border: 2px solid #4b5563; /* gray-600 */
@@ -156,7 +170,7 @@
                     <p class="mt-6 text-sm text-center text-slate-400">
                         Não tem uma conta? <a href="#" id="show-register" class="font-semibold text-cyan-400 hover:text-cyan-300">Cadastre-se</a>
                     </p>
-                     <p class="mt-2 text-sm text-center text-slate-400">
+                      <p class="mt-2 text-sm text-center text-slate-400">
                         <a href="#" id="show-reset" class="font-semibold text-cyan-400 hover:text-cyan-300">Esqueceu a senha?</a>
                     </p>
                 </div>
@@ -192,7 +206,7 @@
                         </div>
                         <button type="submit" class="w-full py-3 text-white font-semibold bg-cyan-600 rounded-md hover:bg-cyan-500 shadow-lg shadow-cyan-500/20 transform hover:scale-105">Enviar Link</button>
                     </form>
-                     <p class="mt-6 text-sm text-center text-slate-400">
+                      <p class="mt-6 text-sm text-center text-slate-400">
                         <a href="#" id="back-to-login" class="font-semibold text-cyan-400 hover:text-cyan-300">Voltar para o Login</a>
                     </p>
                 </div>
@@ -314,6 +328,7 @@
             
             <!-- Seção: Prestadores de Serviço -->
             <div id="tab-providers" class="hidden fade-in">
+                <!-- Conteúdo mantido igual -->
                  <div class="card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl mb-8">
                     <h2 class="text-2xl font-semibold mb-4 text-white">Registrar Novo Serviço</h2>
                     <form id="provider-form" class="space-y-6">
@@ -387,6 +402,7 @@
 
             <!-- Seção: Gerenciar Lojas -->
             <div id="tab-stores" class="hidden fade-in">
+                <!-- Conteúdo mantido igual -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div class="lg:col-span-1 card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl h-fit">
                         <h2 class="text-2xl font-semibold mb-4 text-white">Adicionar Nova Loja</h2>
@@ -421,6 +437,7 @@
 
             <!-- Seção: Relatórios e Ocorrências -->
             <div id="tab-reports" class="hidden fade-in">
+                <!-- Conteúdo mantido igual -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div class="lg:col-span-1 card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl h-fit">
                         <h2 class="text-2xl font-semibold mb-4 text-white">Novo Relatório</h2>
@@ -455,6 +472,7 @@
 
             <!-- Seção Dashboard -->
             <div id="tab-dashboard" class="hidden fade-in">
+                <!-- Conteúdo mantido igual -->
                 <div class="card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl mb-8">
                     <h2 class="text-2xl font-semibold mb-4 text-white">Análise de Movimentação</h2>
                     <div class="flex flex-wrap items-end gap-4 border-b border-slate-700 pb-4 mb-6">
@@ -530,87 +548,104 @@
         </div>
     </div>
 
-    <!-- Modal de Auditoria -->
-    <div id="audit-modal" class="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm flex items-center justify-center hidden z-40 p-4">
-        <div id="audit-modal-content" class="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-6xl flex flex-col fade-in">
-            <!-- Cabeçalho do Modal -->
-            <div class="flex justify-between items-center p-4 border-b border-slate-700">
+    <!-- Modal de Auditoria CORRIGIDO PARA MOBILE -->
+    <div id="audit-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm p-4 hidden">
+        <!-- Conteúdo do Modal: Coluna Flexível -->
+        <div id="audit-modal-content" class="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-6xl flex flex-col max-h-[100dvh] overflow-hidden">
+            
+            <!-- Cabeçalho (Fixo) -->
+            <div class="flex-none flex justify-between items-center p-4 border-b border-slate-700 bg-slate-800 z-10">
                 <div>
-                    <h2 class="text-2xl font-bold text-white">Auditoria de Carregamento</h2>
-                    <div id="audit-modal-header" class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-400 mt-1"></div>
+                    <h2 class="text-xl md:text-2xl font-bold text-white">Auditoria de Carregamento</h2>
+                    <div id="audit-modal-header" class="flex flex-wrap gap-x-4 gap-y-1 text-xs md:text-sm text-slate-400 mt-1"></div>
                 </div>
-                <button onclick="closeAuditModal()" class="text-slate-400 hover:text-white text-3xl leading-none">&times;</button>
+                <button onclick="closeAuditModal()" class="text-slate-400 hover:text-white text-3xl leading-none px-2">&times;</button>
             </div>
-            <!-- Corpo do Modal -->
-            <div class="flex-grow flex flex-col md:flex-row p-4 gap-4 overflow-hidden">
+            
+            <!-- Corpo Rolável (Grid + Form) -->
+            <div class="flex-1 overflow-y-auto custom-scroll p-4 space-y-4 md:space-y-0 md:flex md:gap-4 bg-slate-800/50">
+                
                 <!-- Grid de Paletes -->
-                <div class="flex-grow overflow-y-auto pr-2">
-                    <div id="pallet-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                <div class="flex-grow">
+                    <div id="pallet-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 md:gap-4">
                         <!-- Círculos de paletes serão inseridos aqui -->
                     </div>
                 </div>
-                <!-- Formulário do Palete -->
-                <div id="pallet-form-container" class="w-full md:max-w-sm bg-slate-900/50 p-4 rounded-lg border border-slate-700 hidden flex-shrink-0">
-                    <form id="pallet-form" class="space-y-4">
+                
+                <!-- Formulário do Palete (Fica abaixo no mobile, lado no desktop) -->
+                <div id="pallet-form-container" class="w-full md:max-w-sm bg-slate-900 p-4 rounded-lg border border-slate-700 hidden flex-shrink-0 shadow-lg">
+                    <form id="pallet-form" class="space-y-3 md:space-y-4">
                         <input type="hidden" id="pallet-position">
                         <input type="hidden" id="pallet-entry-id">
-                        <h3 class="text-lg font-semibold text-white">Palete Posição <span id="pallet-position-label"></span></h3>
+                        <div class="flex justify-between items-center border-b border-slate-700 pb-2">
+                            <h3 class="text-lg font-semibold text-white">Palete Posição <span id="pallet-position-label" class="text-cyan-400"></span></h3>
+                            <button type="button" id="close-form-mobile" class="md:hidden text-slate-400 hover:text-white">&times;</button>
+                        </div>
+                        
                         <div>
                             <label for="pallet-number" class="block text-sm font-medium text-slate-400 mb-1">Número do Palete</label>
-                            <input type="text" id="pallet-number" required class="w-full p-2 bg-slate-800 border border-slate-600 rounded-md text-slate-200">
+                            <input type="text" id="pallet-number" required class="w-full p-2 bg-slate-800 border border-slate-600 rounded-md text-slate-200 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500">
                         </div>
+                        
                         <div>
                             <label class="block text-sm font-medium text-slate-400 mb-1">Tipo de Palete</label>
-                            <div class="flex gap-4">
-                                <label class="flex items-center gap-2"><input type="radio" name="pallet-type" value="comum" class="form-radio bg-slate-700 text-cyan-500 focus:ring-cyan-500" checked> Comum (Branco)</label>
-                                <label class="flex items-center gap-2"><input type="radio" name="pallet-type" value="amarelo" class="form-radio bg-slate-700 text-cyan-500 focus:ring-cyan-500"> Amarelo</label>
+                            <div class="flex flex-wrap gap-3">
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="pallet-type" value="comum" class="form-radio bg-slate-700 text-cyan-500 focus:ring-cyan-500" checked> <span class="text-sm">Branco</span></label>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="pallet-type" value="amarelo" class="form-radio bg-slate-700 text-cyan-500 focus:ring-cyan-500"> <span class="text-sm">Amarelo</span></label>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2">
-                             <input type="checkbox" id="pallet-has-juncao" class="form-checkbox h-5 w-5 bg-slate-700 rounded text-cyan-500 focus:ring-cyan-500">
-                             <label for="pallet-has-juncao" class="text-sm font-medium text-slate-400">Adicionar Junção (Rosa)?</label>
+                        
+                        <div class="flex items-center gap-2 py-1">
+                             <input type="checkbox" id="pallet-has-juncao" class="form-checkbox h-5 w-5 bg-slate-700 rounded text-cyan-500 focus:ring-cyan-500 border-slate-600">
+                             <label for="pallet-has-juncao" class="text-sm font-medium text-slate-400 cursor-pointer">Adicionar Junção (Rosa)?</label>
                         </div>
-                        <div id="juncao-number-container" class="hidden">
+                        
+                        <div id="juncao-number-container" class="hidden animate-fadeIn">
                              <label for="juncao-number" class="block text-sm font-medium text-slate-400 mb-1">Número da Junção</label>
-                            <input type="text" id="juncao-number" class="w-full p-2 bg-slate-800 border border-slate-600 rounded-md text-slate-200">
+                            <input type="text" id="juncao-number" class="w-full p-2 bg-slate-800 border border-slate-600 rounded-md text-slate-200 focus:border-pink-500 focus:ring-1 focus:ring-pink-500">
                         </div>
+                        
                         <div>
                             <label for="pallet-obs" class="block text-sm font-medium text-slate-400 mb-1">Observações</label>
-                            <textarea id="pallet-obs" rows="3" class="w-full p-2 bg-slate-800 border border-slate-600 rounded-md text-slate-200"></textarea>
+                            <textarea id="pallet-obs" rows="2" class="w-full p-2 bg-slate-800 border border-slate-600 rounded-md text-slate-200 text-sm"></textarea>
                         </div>
-                        <div class="flex gap-2">
-                            <button type="submit" class="flex-grow bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-cyan-500">Salvar Palete</button>
-                            <button type="button" id="delete-pallet-btn" class="bg-red-600/80 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-500 hidden">Excluir</button>
+                        
+                        <div class="flex gap-2 pt-2">
+                            <button type="submit" class="flex-grow bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-cyan-500 transition-colors shadow-lg">Salvar</button>
+                            <button type="button" id="delete-pallet-btn" class="bg-red-600/80 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-500 hidden transition-colors">Excluir</button>
                         </div>
-                        <button type="button" id="cancel-pallet-form" class="w-full text-center text-sm text-slate-400 hover:text-white mt-2">Cancelar</button>
+                        <button type="button" id="cancel-pallet-form" class="w-full text-center text-sm text-slate-500 hover:text-slate-300 mt-2 py-1">Cancelar Edição</button>
                     </form>
                 </div>
             </div>
-             <!-- Rodapé do Modal -->
-            <div class="p-4 border-t border-slate-700 flex justify-end">
-                <button id="finalize-audit-btn" class="bg-green-600/80 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-600">Finalizar Auditoria e Registrar Saída</button>
+
+            <!-- Rodapé (Fixo) -->
+            <div class="flex-none p-4 border-t border-slate-700 bg-slate-800 flex justify-end z-10">
+                <button id="finalize-audit-btn" class="w-full md:w-auto bg-green-600/90 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 shadow-lg transition-transform active:scale-95">
+                    Finalizar Auditoria
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- NOVO: Modal de Detalhes do Histórico -->
+    <!-- Modal de Detalhes do Histórico -->
     <div id="history-details-modal" class="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm flex items-center justify-center hidden z-40 p-4">
-        <div id="history-details-modal-content" class="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-4xl flex flex-col fade-in overflow-hidden">
+        <div id="history-details-modal-content" class="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-4xl flex flex-col fade-in overflow-hidden max-h-[90vh]">
             <!-- Cabeçalho do Modal -->
             <div class="flex justify-between items-center p-4 border-b border-slate-700 flex-shrink-0">
                 <div>
-                    <h2 class="text-2xl font-bold text-white">Detalhes da Auditoria Finalizada</h2>
+                    <h2 class="text-xl md:text-2xl font-bold text-white">Detalhes da Auditoria</h2>
                     <div id="history-modal-header" class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-400 mt-1"></div>
                 </div>
                 <button onclick="closeHistoryDetailsModal()" class="text-slate-400 hover:text-white text-3xl leading-none">&times;</button>
             </div>
             <!-- Corpo do Modal -->
-            <div id="history-modal-body" class="p-6 overflow-y-auto space-y-6">
+            <div id="history-modal-body" class="p-6 overflow-y-auto space-y-6 custom-scroll">
                 <!-- Conteúdo será inserido dinamicamente aqui -->
             </div>
-            <!-- Rodapé do Modal com Botão de Exportação Detalhada -->
+            <!-- Rodapé do Modal -->
             <div id="history-modal-footer" class="p-4 border-t border-slate-700 flex justify-end flex-shrink-0">
-                <!-- O botão será inserido dinamicamente aqui -->
+                <!-- Botão inserido via JS -->
             </div>
         </div>
     </div>
@@ -737,10 +772,9 @@
                     document.getElementById('resend-verification').addEventListener('click', async (resendEvent) => {
                         resendEvent.preventDefault();
                         try {
-                            // Re-autentica temporariamente para obter o objeto do usuário
                             const tempUserCredential = await signInWithEmailAndPassword(auth, email, password);
                             await sendEmailVerification(tempUserCredential.user);
-                            await signOut(auth); // Desloga novamente
+                            await signOut(auth); 
                             showStatusMessage('Email de verificação reenviado com sucesso.', 'success', 'auth');
                         } catch (resendError) {
                             showStatusMessage(`Erro ao reenviar: ${resendError.message}`, 'error', 'auth');
@@ -887,9 +921,15 @@
             });
             document.getElementById('pallet-form').addEventListener('submit', savePalletData);
             document.getElementById('delete-pallet-btn').addEventListener('click', deletePalletData);
+            
+            // Fechar formulário no mobile
             document.getElementById('cancel-pallet-form').addEventListener('click', () => {
                 document.getElementById('pallet-form-container').classList.add('hidden');
             });
+            document.getElementById('close-form-mobile').addEventListener('click', () => {
+                 document.getElementById('pallet-form-container').classList.add('hidden');
+            });
+
             document.getElementById('finalize-audit-btn').addEventListener('click', handleFinalizeAudit);
         }
         
@@ -908,7 +948,7 @@
             const searchTerm = e.target.value.toLowerCase();
             const results = storesCache.filter(store => 
                 store.nomeFantasia.toLowerCase().includes(searchTerm) || 
-                store.nomeReal.toLowerCase().includes(searchTerm) ||
+                store.nomeReal.toLowerCase().includes(searchTerm) || 
                 store.numero.includes(searchTerm)
             );
             renderStoreSearchResults(results, formType);
@@ -1181,11 +1221,9 @@
         function renderHistoryEntry(entry) {
             const historyListEl = document.getElementById('history-entries-list');
             const card = document.createElement('div');
-            // MODIFICADO: Adicionado onclick para abrir o novo modal de detalhes
             card.className = 'card bg-slate-800/50 border border-slate-700 rounded-lg p-4 flex flex-col justify-between space-y-3 fade-in cursor-pointer';
             card.setAttribute('onclick', `showHistoryDetailsModal('${entry.id}')`);
 
-            // NOVO: Calcula a contagem de paletes por tipo
             const paletes = entry.paletes || [];
             const comumCount = paletes.filter(p => !p.temJuncao && p.tipo === 'comum').length;
             const juncaoCount = paletes.filter(p => p.temJuncao).length;
@@ -1222,7 +1260,6 @@
                 <div>
                     <div class="flex justify-between items-start">
                         <span class="px-2 py-1 text-xs font-semibold text-cyan-200 bg-cyan-500/20 rounded-full">${entry.placa.toUpperCase() || 'N/A'}</span>
-                        <!-- NOVO: Círculos de contagem de paletes -->
                         <div class="flex items-center gap-2">
                             <div class="count-circle white" title="Paletes Comuns">${comumCount}</div>
                             <div class="count-circle pink" title="Junções">${juncaoCount}</div>
@@ -1291,7 +1328,7 @@
                 const palletData = paletes.find(p => p.posicao === i);
                 
                 const circle = document.createElement('div');
-                circle.className = 'pallet-circle w-24 h-24 rounded-full flex flex-col items-center justify-center cursor-pointer font-bold text-lg';
+                circle.className = 'pallet-circle w-20 h-20 md:w-24 md:h-24 rounded-full flex flex-col items-center justify-center cursor-pointer font-bold text-lg flex-shrink-0 mx-auto';
                 circle.setAttribute('onclick', `showPalletForm(${i})`);
 
                 if (palletData) {
@@ -1344,6 +1381,11 @@
             }
 
             formContainer.classList.remove('hidden');
+            
+            // Scroll para o formulário em mobile para garantir visibilidade
+            if(window.innerWidth < 768) {
+                formContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
         }
 
         async function savePalletData(e) {
@@ -1377,7 +1419,6 @@
                 
                 await updateDoc(entryDocRef, { paletes: existingPallets });
 
-                // CORREÇÃO: Atualiza o cache local e renderiza o grid imediatamente.
                 const cachedEntry = allEntriesCache.find(e => e.id === entryId);
                 if (cachedEntry) {
                     cachedEntry.paletes = existingPallets;
@@ -1405,7 +1446,6 @@
                 
                 await updateDoc(entryDocRef, { paletes: updatedPallets });
                 
-                // CORREÇÃO: Atualiza o cache local e renderiza o grid imediatamente.
                 const cachedEntry = allEntriesCache.find(e => e.id === entryId);
                 if (cachedEntry) {
                     cachedEntry.paletes = updatedPallets;
@@ -1423,7 +1463,6 @@
             const entryId = document.getElementById('audit-modal').dataset.entryId;
             if (!entryId) return;
 
-            // TODO: Substituir confirm por um modal customizado
             if (confirm('Tem certeza que deseja finalizar esta auditoria?')) {
                 const entryDocRef = doc(db, getCollectionPath('registros'), entryId);
                 try {
@@ -2014,7 +2053,7 @@
                         <p class="text-sm text-slate-400">${provider.lojas[0].nomeReal || ''}</p>
                     </div>`;
                 }
-            } else if (provider.storeName) { // Compatibilidade
+            } else if (provider.storeName) {
                 storesHtml = `<div>
                     <p class="font-semibold text-slate-200">${provider.storeName}</p>
                     <p class="text-sm text-slate-400">${provider.storeRealName || ''}</p>
@@ -2226,7 +2265,7 @@
                                 </div>
                                 <div id="report-full-content-${report.id}" class="hidden">
                                     <p class="text-slate-300 whitespace-pre-wrap break-words">${report.content}</p>
-                                    <button class="text-cyan-400 hover:underline text-sm mt-2" onclick="toggleReportContent('${report.id}', false)">Ver menos</button>
+                                    <button class="text-xs text-cyan-400 hover:underline text-sm mt-2" onclick="toggleReportContent('${report.id}', false)">Ver menos</button>
                                 </div>
                                 ${imagesHtml}
                             </div>
@@ -2369,7 +2408,7 @@
             renderCombinedEntriesOverTime(filteredVehicleData, filteredProviderData);
             renderActivityByHour(filteredVehicleData, filteredProviderData);
             renderActivityByWeekday(filteredVehicleData, filteredProviderData);
-            renderTopNChart('topStoresChart', filteredVehicleData, 'lojas', 'Top 5 Lojas (Carga/Descarga)');
+            renderTopNChart('topStoresChart', filteredVehicleData, 'lojas', 'Top 5 Lojas (Carregamento)');
             renderTopNChart('topCompaniesChart', filteredProviderData, 'company', 'Top 5 Empresas de Serviço');
         }
 
@@ -2581,6 +2620,13 @@
             chartInstances[canvasId] = new Chart(ctx, config);
         }
         
+        function createPaginationEllipsis() {
+            const ellipsis = document.createElement('span');
+            ellipsis.textContent = '...';
+            ellipsis.className = 'px-3 py-1 text-slate-500';
+            return ellipsis;
+        }
+
         function renderPaginationControls(type, totalPages, currentPage, changePageFn) {
             const paginationEl = document.getElementById(`${type}-pagination-controls`);
             if (!paginationEl) return;
@@ -2694,7 +2740,7 @@
             yPosition += (splitContent.length * 7) + 10; 
 
             if (report.images && report.images.length > 0) {
-                for (const                             [index, imgSrc] of report.images.entries()) {
+                for (const [index, imgSrc] of report.images.entries()) {
                     // Verifica se há espaço na página atual para a imagem
                     // A altura aproximada da imagem é 60mm, com margem.
                     if (yPosition > pageHeight - margin - 60) {
@@ -2729,4 +2775,3 @@
     </script>
 </body>
 </html>
-

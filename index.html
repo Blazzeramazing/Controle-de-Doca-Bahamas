@@ -18,132 +18,44 @@
     <style>
         body { 
             font-family: 'Inter', sans-serif;
-            overscroll-behavior-y: none; /* Previne refresh ao puxar no mobile */
+            overscroll-behavior-y: none;
         }
-        ::selection {
-            background-color: rgba(6, 182, 212, 0.5);
-            color: white;
-        }
-        .tab-button.active {
-            color: #22d3ee;
-            font-weight: 600;
-            background-color: rgba(6, 182, 212, 0.1);
-        }
-        #store-search-results::-webkit-scrollbar, #provider-store-search-results::-webkit-scrollbar { display: none; }
-        #store-search-results, #provider-store-search-results { -ms-overflow-style: none; scrollbar-width: none; }
+        ::selection { background-color: rgba(6, 182, 212, 0.5); color: white; }
+        .tab-button.active { color: #22d3ee; font-weight: 600; background-color: rgba(6, 182, 212, 0.1); }
+        #store-search-results::-webkit-scrollbar { display: none; }
+        #store-search-results { -ms-overflow-style: none; scrollbar-width: none; }
         
-        .card, .tab-button, button, input, textarea, a, select {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .card:hover {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 0 15px rgba(6, 182, 212, 0.3);
-            border-color: rgba(6, 182, 212, 0.5);
-        }
-        .fade-in {
-            animation: fadeIn 0.7s ease-in-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .loader {
-            border: 5px solid rgba(255,255,255,0.2);
-            border-top: 5px solid #06b6d4;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        .card, .tab-button, button, input, textarea, a, select { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 0 15px rgba(6, 182, 212, 0.3); border-color: rgba(6, 182, 212, 0.5); }
+        .fade-in { animation: fadeIn 0.7s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .loader { border: 5px solid rgba(255,255,255,0.2); border-top: 5px solid #06b6d4; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .hidden-file-input { display: none; }
 
-        .aurora-background {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            overflow: hidden;
-            z-index: 0;
-            opacity: 0.4;
-        }
-        .aurora-background::before,
-        .aurora-background::after {
-            content: '';
-            position: absolute;
-            width: 200vw; height: 200vh;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background-image:
-                radial-gradient(circle at center, #06b6d4 0%, transparent 30%),
-                radial-gradient(circle at center, #8b5cf6 0%, transparent 35%);
-            mix-blend-mode: screen;
-            animation: aurora 30s linear infinite;
-            filter: blur(120px);
-        }
-        .aurora-background::after {
-            background-image:
-                radial-gradient(circle at center, #3b82f6 0%, transparent 30%),
-                radial-gradient(circle at center, #d946ef 0%, transparent 35%);
-            animation-direction: reverse;
-            animation-delay: -15s;
-        }
-        @keyframes aurora {
-            from { transform: translate(-50%, -50%) rotate(0deg); }
-            to { transform: translate(-50%, -50%) rotate(360deg); }
-        }
+        .aurora-background { position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: 0; opacity: 0.4; }
+        .aurora-background::before, .aurora-background::after { content: ''; position: absolute; width: 200vw; height: 200vh; top: 50%; left: 50%; transform: translate(-50%, -50%); background-image: radial-gradient(circle at center, #06b6d4 0%, transparent 30%), radial-gradient(circle at center, #8b5cf6 0%, transparent 35%); mix-blend-mode: screen; animation: aurora 30s linear infinite; filter: blur(120px); }
+        .aurora-background::after { background-image: radial-gradient(circle at center, #3b82f6 0%, transparent 30%), radial-gradient(circle at center, #d946ef 0%, transparent 35%); animation-direction: reverse; animation-delay: -15s; }
+        @keyframes aurora { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
         
-        /* SCROLLBAR CUSTOMIZADA PARA OS MODAIS E LISTAS */
-        .custom-scroll::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        .custom-scroll::-webkit-scrollbar-track {
-            background: rgba(30, 41, 59, 0.5);
-            border-radius: 4px;
-        }
-        .custom-scroll::-webkit-scrollbar-thumb {
-            background: #475569;
-            border-radius: 4px;
-        }
-        .custom-scroll::-webkit-scrollbar-thumb:hover {
-            background: #64748b;
-        }
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: rgba(30, 41, 59, 0.5); border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #64748b; }
 
-        .pallet-circle {
-            background-color: #374151; /* gray-700 */
-            border: 2px solid #4b5563; /* gray-600 */
-            color: #d1d5db; /* gray-300 */
-            transition: all 0.3s ease;
-        }
-        .pallet-circle:hover {
-            border-color: #06b6d4; /* cyan-500 */
-            transform: scale(1.05);
-        }
+        .pallet-circle { background-color: #374151; border: 2px solid #4b5563; color: #d1d5db; transition: all 0.3s ease; }
+        .pallet-circle:hover { border-color: #06b6d4; transform: scale(1.05); }
         .pallet-circle.comum { background-color: white; color: #1f2937; border-color: #9ca3af; }
         .pallet-circle.amarelo { background-color: #facc15; color: #1f2937; border-color: #ca8a04; }
-        .pallet-circle.juncao {
-            background: linear-gradient(135deg, white 50%, #f472b6 50%); /* pink-400 */
-            color: #1f2937;
-            border-color: #db2777; /* pink-600 */
-        }
-        /* Estilos para os círculos de contagem no histórico */
-        .count-circle {
-            width: 32px; height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 0.875rem;
-            color: #1f2937;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-        }
+        .pallet-circle.juncao { background: linear-gradient(135deg, white 50%, #f472b6 50%); color: #1f2937; border-color: #db2777; }
+        
+        .count-circle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.875rem; color: #1f2937; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
         .count-circle.white { background-color: #ffffff; border: 2px solid #9ca3af; }
         .count-circle.pink { background-color: #f472b6; border: 2px solid #db2777; }
         .count-circle.yellow { background-color: #facc15; border: 2px solid #ca8a04; }
+
+        /* Visibilidade baseada em Perfil */
+        .admin-only { display: none !important; }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-300">
@@ -155,7 +67,7 @@
                 <div id="authStatusMessage" class="hidden p-4 mb-4 text-sm rounded-lg" role="alert"></div>
                 <!-- Formulário de Login -->
                 <div id="login-form-container">
-                    <h2 class="text-3xl font-bold text-center text-white">Bem-vindo(a)</h2>
+                    <h2 class="text-3xl font-bold text-center text-white">Prevenção CD</h2>
                     <form id="login-form" class="mt-6 space-y-4">
                         <div>
                             <label for="login-email" class="text-sm font-medium text-slate-400">Email</label>
@@ -170,7 +82,7 @@
                     <p class="mt-6 text-sm text-center text-slate-400">
                         Não tem uma conta? <a href="#" id="show-register" class="font-semibold text-cyan-400 hover:text-cyan-300">Cadastre-se</a>
                     </p>
-                      <p class="mt-2 text-sm text-center text-slate-400">
+                     <p class="mt-2 text-sm text-center text-slate-400">
                         <a href="#" id="show-reset" class="font-semibold text-cyan-400 hover:text-cyan-300">Esqueceu a senha?</a>
                     </p>
                 </div>
@@ -179,11 +91,11 @@
                     <h2 class="text-3xl font-bold text-center text-white">Criar Conta</h2>
                     <form id="register-form" class="mt-6 space-y-4">
                         <div>
-                            <label for="register-name" class="text-sm font-medium text-slate-400">Nome</label>
+                            <label for="register-name" class="text-sm font-medium text-slate-400">Nome Completo</label>
                             <input id="register-name" type="text" required class="w-full p-3 mt-1 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
                         </div>
                         <div>
-                            <label for="register-email" class="text-sm font-medium text-slate-400">Email</label>
+                            <label for="register-email" class="text-sm font-medium text-slate-400">Email Corporativo</label>
                             <input id="register-email" type="email" required class="w-full p-3 mt-1 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
                         </div>
                         <div>
@@ -213,34 +125,77 @@
             </div>
         </div>
 
+        <!-- Modal Completar Perfil -->
+        <div id="complete-profile-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm flex items-center justify-center z-50">
+            <div class="w-full max-w-md p-8 bg-slate-800/90 border border-slate-700 rounded-2xl shadow-2xl relative">
+                <button type="button" id="cancel-profile-setup" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors" title="Cancelar e voltar ao Login">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+                <h2 class="text-2xl font-bold text-white mb-2">Completar Perfil</h2>
+                <p class="text-slate-400 text-sm mb-6">Sua conta foi criada. Defina seu tipo de acesso na plataforma.</p>
+                <form id="profile-setup-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400">Tipo de Perfil</label>
+                        <select id="profile-role" required class="w-full p-3 mt-1 bg-slate-900/80 border border-slate-700 rounded-md text-slate-200 focus:ring-cyan-500 focus:border-cyan-500">
+                            <option value="" disabled selected>Selecione...</option>
+                            <option value="agente">Agente de Prevenção</option>
+                            <option value="admin">Admin Supervisão</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Campo de Seleção de Loja para Agente -->
+                    <div id="profile-store-container" class="hidden">
+                        <label class="block text-sm font-medium text-slate-400">Selecione sua Base/Loja</label>
+                        <select id="profile-store" class="w-full p-3 mt-1 bg-slate-900/80 border border-slate-700 rounded-md text-slate-200 focus:ring-cyan-500 focus:border-cyan-500">
+                            <option value="" disabled selected>Carregando locais...</option>
+                        </select>
+                        <p class="text-xs text-slate-500 mt-1">Sua base de atuação principal (Onde você está alocado).</p>
+                    </div>
+
+                    <!-- Código para Admin -->
+                    <div id="profile-admin-container" class="hidden">
+                        <label class="block text-sm font-medium text-slate-400">Código Secreto do Supervisor</label>
+                        <input type="password" id="profile-admin-code" placeholder="Digite o código..." class="w-full p-3 mt-1 bg-slate-900/80 border border-slate-700 rounded-md text-slate-200 focus:ring-cyan-500 focus:border-cyan-500">
+                    </div>
+                    
+                    <button type="submit" class="w-full py-3 mt-6 bg-cyan-600 text-white font-bold rounded-lg hover:bg-cyan-500 shadow-lg shadow-cyan-500/20 transform hover:scale-105 transition-all">Concluir Cadastro</button>
+                </form>
+            </div>
+        </div>
+
         <!-- Container Principal do App -->
         <div id="main-app-container" class="hidden container mx-auto p-4 md:p-8 max-w-7xl">
-            <header class="mb-8 flex justify-between items-center">
+            <header class="mb-8 flex flex-col md:flex-row md:justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 class="text-4xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Sistema de Auditoria de Doca</h1>
+                    <h1 class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">Sistema de Auditoria de Doca</h1>
                     <p id="welcome-message" class="text-lg text-slate-400">Gerenciamento de carregamento para Prevenção de Perdas.</p>
                 </div>
-                <button id="logout-btn" class="bg-red-600/50 text-white font-bold py-2 px-4 rounded-lg border border-red-500 hover:bg-red-600/80 transform hover:scale-105">Sair</button>
+                <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
+                    <span id="user-role-badge" class="px-3 py-1 text-xs font-bold rounded-full bg-slate-800 text-slate-300 border border-slate-600"></span>
+                    <button id="logout-btn" class="bg-red-600/50 text-white font-bold py-2 px-4 rounded-lg border border-red-500 hover:bg-red-600/80 transform hover:scale-105">Sair</button>
+                </div>
             </header>
 
             <!-- Menu Hamburger -->
             <div class="relative mb-6">
                 <button id="menu-toggle-btn" class="flex items-center gap-2 bg-slate-800/50 p-3 border border-slate-700 rounded-lg shadow-sm text-slate-300 hover:bg-slate-700/50 hover:border-cyan-500">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-16 6h16"></path></svg>
-                    <span id="current-tab-name" class="font-medium text-white">Carga e Descarga</span>
+                    <span id="current-tab-name" class="font-medium text-white">Auditorias</span>
                 </button>
                 <nav id="main-menu" class="hidden absolute left-0 mt-2 w-64 bg-slate-800 rounded-lg shadow-2xl z-20 border border-slate-700 overflow-hidden">
-                    <button id="tab-btn-control" class="tab-button active w-full text-left block py-3 px-4 text-sm text-slate-300 hover:bg-slate-700/50" onclick="showTab('control')">Carga e Descarga</button>
-                    <button id="tab-btn-providers" class="tab-button w-full text-left block py-3 px-4 text-sm text-slate-300 hover:bg-slate-700/50" onclick="showTab('providers')">Prestadores de Serviço</button>
-                    <button id="tab-btn-stores" class="tab-button w-full text-left block py-3 px-4 text-sm text-slate-300 hover:bg-slate-700/50" onclick="showTab('stores')">Gerenciar Lojas</button>
-                    <button id="tab-btn-reports" class="tab-button w-full text-left block py-3 px-4 text-sm text-slate-300 hover:bg-slate-700/50" onclick="showTab('reports')">Relatórios e Ocorrências</button>
-                    <button id="tab-btn-dashboard" class="tab-button w-full text-left block py-3 px-4 text-sm text-slate-300 hover:bg-slate-700/50" onclick="showTab('dashboard')">Dashboard</button>
+                    <button id="tab-btn-control" class="tab-button active w-full text-left block py-3 px-4 text-sm text-slate-300 hover:bg-slate-700/50" onclick="showTab('control')">Auditorias (Carga)</button>
+                    <button id="tab-btn-reports" class="tab-button w-full text-left block py-3 px-4 text-sm text-slate-300 hover:bg-slate-700/50" onclick="showTab('reports')">Ocorrências (Relatórios)</button>
+                    
+                    <div class="border-t border-slate-700 my-1 admin-only"></div>
+                    <button id="tab-btn-collaborators" class="tab-button w-full text-left block py-3 px-4 text-sm text-slate-300 hover:bg-slate-700/50 admin-only" onclick="showTab('collaborators')">Gerenciar Agentes</button>
+                    <button id="tab-btn-stores" class="tab-button w-full text-left block py-3 px-4 text-sm text-slate-300 hover:bg-slate-700/50 admin-only" onclick="showTab('stores')">Gerenciar Lojas</button>
+                    <button id="tab-btn-dashboard" class="tab-button w-full text-left block py-3 px-4 text-sm text-slate-300 hover:bg-slate-700/50 admin-only" onclick="showTab('dashboard')">Dashboard de Prevenção</button>
                 </nav>
             </div>
             
             <div id="statusMessage" class="hidden p-4 mb-4 text-sm rounded-lg" role="alert"></div>
 
-            <!-- Seção: Carga e Descarga -->
+            <!-- Seção: Auditoria de Carga (Control) -->
             <div id="tab-control" class="fade-in">
                 <!-- Formulário de Entrada -->
                 <div class="card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl mb-8">
@@ -271,7 +226,7 @@
                                 <label for="auditor-matricula" class="block text-sm font-medium text-slate-400 mb-1">Matrícula do Auditor</label>
                                 <input type="text" id="auditor-matricula" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
                             </div>
-                            <div>
+                            <div class="md:col-span-2">
                                 <label for="tipo-veiculo" class="block text-sm font-medium text-slate-400 mb-1">Tipo de Veículo</label>
                                 <select id="tipo-veiculo" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
                                     <option value="">Selecione...</option>
@@ -303,9 +258,11 @@
 
                 <!-- Veículos Ativos -->
                 <div class="card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl mb-8">
-                    <h2 class="text-2xl font-semibold mb-4 text-white">Veículos em Carregamento</h2>
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-semibold text-white">Veículos em Auditoria (Ativos)</h2>
+                    </div>
                     <div id="active-entries-list" class="space-y-4">
-                        <p class="text-slate-500">Nenhum veículo em carregamento no momento.</p>
+                        <p class="text-slate-500">Nenhum veículo em auditoria no momento.</p>
                     </div>
                 </div>
 
@@ -325,129 +282,19 @@
                     <div id="vehicle-history-pagination-controls" class="mt-6 flex justify-center items-center space-x-2"></div>
                 </div>
             </div>
-            
-            <!-- Seção: Prestadores de Serviço -->
-            <div id="tab-providers" class="hidden fade-in">
-                <!-- Conteúdo mantido igual -->
-                 <div class="card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl mb-8">
-                    <h2 class="text-2xl font-semibold mb-4 text-white">Registrar Novo Serviço</h2>
-                    <form id="provider-form" class="space-y-6">
-                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="provider-company" class="block text-sm font-medium text-slate-400 mb-1">Empresa Prestadora</label>
-                                <input type="text" id="provider-company" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
-                            </div>
-                            <div>
-                                <label for="provider-plate" class="block text-sm font-medium text-slate-400 mb-1">Placa do Veículo (Opcional)</label>
-                                <input type="text" id="provider-plate" class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md uppercase focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
-                            </div>
-                        </div>
-
-                        <div class="border-t border-slate-700 pt-4">
-                            <h3 class="text-lg font-medium text-white mb-2">Lojas de Destino</h3>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-                                <div class="sm:col-span-2 relative search-container">
-                                    <label for="provider-store-search" class="block text-sm font-medium text-slate-400 mb-1">Buscar Loja (Nome ou Nº)</label>
-                                    <input type="text" id="provider-store-search" autocomplete="off" placeholder="Busque a loja..." class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
-                                    <div id="provider-store-search-results" class="hidden absolute z-10 w-full bg-slate-800 border border-slate-700 mt-1 rounded-md shadow-lg max-h-48 overflow-y-auto"></div>
-                                </div>
-                                <button type="button" id="add-provider-store-btn" class="w-full sm:w-auto bg-slate-700 text-slate-300 font-bold py-2 px-4 rounded-lg hover:bg-slate-600 transform hover:scale-105">Adicionar Loja</button>
-                            </div>
-                            <div id="provider-stores-list" class="mt-4 space-y-2"></div>
-                        </div>
-                        
-                        <div class="border-t border-slate-700 pt-4">
-                            <h3 class="text-lg font-medium text-white mb-2">Equipe</h3>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-                                <div class="sm:col-span-1">
-                                    <label for="provider-member-name" class="block text-sm font-medium text-slate-400">Nome do Integrante</label>
-                                    <input type="text" id="provider-member-name" class="mt-1 w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
-                                </div>
-                                <div class="sm:col-span-1">
-                                    <label for="provider-member-doc" class="block text-sm font-medium text-slate-400">CPF/RG</label>
-                                    <input type="text" id="provider-member-doc" class="mt-1 w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
-                                </div>
-                                <button type="button" id="add-member-btn" class="w-full sm:w-auto bg-slate-700 text-slate-300 font-bold py-2 px-4 rounded-lg hover:bg-slate-600 transform hover:scale-105">Adicionar</button>
-                            </div>
-                            <div id="team-members-list" class="mt-4 space-y-2"></div>
-                        </div>
-                        <div class="border-t border-slate-700 pt-4">
-                            <label for="provider-description" class="block text-sm font-medium text-slate-400 mb-1">Descrição do Serviço</label>
-                            <textarea id="provider-description" rows="3" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200"></textarea>
-                        </div>
-                        <button type="submit" class="w-full md:w-auto bg-cyan-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-cyan-500 transform hover:scale-105 shadow-lg shadow-cyan-500/20">Registrar Serviço Completo</button>
-                    </form>
-                </div>
-                <div class="card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl mb-8">
-                    <h2 class="text-2xl font-semibold mb-4 text-white">Prestadores no Local</h2>
-                    <div id="active-providers-list" class="space-y-4">
-                        <p class="text-slate-500">Nenhum prestador de serviço no local.</p>
-                    </div>
-                </div>
-                <div class="card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl">
-                    <div class="flex flex-col sm:flex-row flex-wrap justify-between items-start sm:items-center mb-4 gap-4">
-                        <h2 class="text-2xl font-semibold text-white">Histórico de Serviços</h2>
-                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
-                            <input type="text" id="provider-history-search" placeholder="Buscar..." class="p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
-                            <input type="date" id="provider-filter-start-date" class="p-2 bg-slate-900/50 border border-slate-700 rounded-md shadow-sm text-slate-300">
-                            <input type="date" id="provider-filter-end-date" class="p-2 bg-slate-900/50 border border-slate-700 rounded-md shadow-sm text-slate-300">
-                            <button id="download-providers-pdf-btn" class="w-full sm:w-auto bg-green-600/80 text-white font-bold py-2.5 px-5 rounded-lg hover:bg-green-600 self-end transform hover:scale-105 shadow-lg shadow-green-500/20">Exportar PDF</button>
-                        </div>
-                    </div>
-                    <div id="provider-history-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4"></div>
-                    <p id="provider-history-placeholder" class="text-slate-500 mt-4 text-center hidden">Nenhum serviço no histórico.</p>
-                    <div id="provider-history-pagination-controls" class="mt-6 flex justify-center items-center space-x-2"></div>
-                </div>
-            </div>
-
-            <!-- Seção: Gerenciar Lojas -->
-            <div id="tab-stores" class="hidden fade-in">
-                <!-- Conteúdo mantido igual -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-1 card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl h-fit">
-                        <h2 class="text-2xl font-semibold mb-4 text-white">Adicionar Nova Loja</h2>
-                        <form id="store-form" class="space-y-4">
-                            <div>
-                                <label for="store-number" class="block text-sm font-medium text-slate-400 mb-1">Número da Loja</label>
-                                <input type="text" id="store-number" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
-                            </div>
-                            <div>
-                                <label for="store-real-name" class="block text-sm font-medium text-slate-400 mb-1">Nome Real</label>
-                                <input type="text" id="store-real-name" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
-                            </div>
-                            <div>
-                                <label for="store-fantasy-name" class="block text-sm font-medium text-slate-400 mb-1">Nome Fantasia</label>
-                                <input type="text" id="store-fantasy-name" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
-                            </div>
-                            <button type="submit" class="w-full bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-cyan-500 transform hover:scale-105 shadow-lg shadow-cyan-500/20">Salvar Loja</button>
-                        </form>
-                    </div>
-                    <div class="lg:col-span-2 card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl">
-                        <h2 class="text-2xl font-semibold mb-4 text-white">Lojas Cadastradas</h2>
-                        <div class="mb-4">
-                            <input type="text" id="store-management-search" placeholder="Buscar loja por nome ou número..." class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
-                        </div>
-                        <div id="stores-list" class="space-y-3">
-                            <p class="text-slate-500">Nenhuma loja cadastrada.</p>
-                        </div>
-                        <div id="stores-pagination-controls" class="mt-6 flex justify-center items-center space-x-2"></div>
-                    </div>
-                </div>
-            </div>
 
             <!-- Seção: Relatórios e Ocorrências -->
             <div id="tab-reports" class="hidden fade-in">
-                <!-- Conteúdo mantido igual -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div class="lg:col-span-1 card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl h-fit">
-                        <h2 class="text-2xl font-semibold mb-4 text-white">Novo Relatório</h2>
+                        <h2 class="text-2xl font-semibold mb-4 text-white">Registrar Ocorrência</h2>
                         <form id="report-form" class="space-y-4">
                             <div>
                                 <label for="report-title" class="block text-sm font-medium text-slate-400 mb-1">Título</label>
                                 <input type="text" id="report-title" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
                             </div>
                             <div>
-                                <label for="report-content" class="block text-sm font-medium text-slate-400 mb-1">Descrição da Ocorrência</label>
+                                <label for="report-content" class="block text-sm font-medium text-slate-400 mb-1">Descrição</label>
                                 <textarea id="report-content" rows="8" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200"></textarea>
                             </div>
                             <div>
@@ -457,24 +304,71 @@
                                 </button>
                             </div>
                             <div id="report-image-previews" class="grid grid-cols-3 gap-2"></div>
-                            <button type="submit" class="w-full bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-cyan-500 transform hover:scale-105 shadow-lg shadow-cyan-500/20">Salvar Relatório</button>
+                            <button type="submit" class="w-full bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-cyan-500 transform hover:scale-105 shadow-lg shadow-cyan-500/20">Salvar Registro</button>
                         </form>
                     </div>
                     <div class="lg:col-span-2 card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl">
-                        <h2 class="text-2xl font-semibold mb-4 text-white">Relatórios Salvos</h2>
+                        <h2 class="text-2xl font-semibold mb-4 text-white">Histórico de Ocorrências</h2>
                         <div id="reports-list" class="space-y-4">
-                            <p class="text-slate-500">Nenhum relatório cadastrado.</p>
+                            <p class="text-slate-500">Nenhum registro cadastrado.</p>
                         </div>
                         <div id="reports-pagination-controls" class="mt-6 flex justify-center items-center space-x-2"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Seção Dashboard -->
-            <div id="tab-dashboard" class="hidden fade-in">
-                <!-- Conteúdo mantido igual -->
+            <!-- Seção: Gerenciar Agentes (Admin Only) -->
+            <div id="tab-collaborators" class="hidden fade-in admin-only">
                 <div class="card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl mb-8">
-                    <h2 class="text-2xl font-semibold mb-4 text-white">Análise de Movimentação</h2>
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+                        <h2 class="text-2xl font-semibold text-white">Agentes de Prevenção Cadastrados</h2>
+                        <input type="text" id="agent-search" placeholder="Buscar por nome ou loja..." class="w-full sm:w-64 p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                    </div>
+                    <div id="agents-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <p class="text-slate-500">Nenhum agente encontrado.</p>
+                    </div>
+                    <div id="agents-pagination-controls" class="mt-6 flex justify-center items-center space-x-2"></div>
+                </div>
+            </div>
+
+            <!-- Seção: Gerenciar Lojas (Admin Only) -->
+            <div id="tab-stores" class="hidden fade-in admin-only">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-1 card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl h-fit">
+                        <h2 class="text-2xl font-semibold mb-4 text-white">Adicionar Nova Loja/Base</h2>
+                        <form id="store-form" class="space-y-4">
+                            <div>
+                                <label for="store-number" class="block text-sm font-medium text-slate-400 mb-1">Número / Código</label>
+                                <input type="text" id="store-number" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                            </div>
+                            <div>
+                                <label for="store-real-name" class="block text-sm font-medium text-slate-400 mb-1">Razão Social</label>
+                                <input type="text" id="store-real-name" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                            </div>
+                            <div>
+                                <label for="store-fantasy-name" class="block text-sm font-medium text-slate-400 mb-1">Nome Fantasia</label>
+                                <input type="text" id="store-fantasy-name" required class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                            </div>
+                            <button type="submit" class="w-full bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-cyan-500 transform hover:scale-105 shadow-lg shadow-cyan-500/20">Salvar Cadastro</button>
+                        </form>
+                    </div>
+                    <div class="lg:col-span-2 card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl">
+                        <h2 class="text-2xl font-semibold mb-4 text-white">Locais Cadastrados</h2>
+                        <div class="mb-4">
+                            <input type="text" id="store-management-search" placeholder="Buscar por nome ou código..." class="w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-slate-200">
+                        </div>
+                        <div id="stores-list" class="space-y-3">
+                            <p class="text-slate-500">Nenhuma loja cadastrada.</p>
+                        </div>
+                        <div id="stores-pagination-controls" class="mt-6 flex justify-center items-center space-x-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção Dashboard (Admin Only) -->
+            <div id="tab-dashboard" class="hidden fade-in admin-only">
+                <div class="card bg-slate-800/50 backdrop-blur-md border border-slate-700 p-6 rounded-xl mb-8">
+                    <h2 class="text-2xl font-semibold mb-4 text-white">Análise Geral (Todos os Agentes)</h2>
                     <div class="flex flex-wrap items-end gap-4 border-b border-slate-700 pb-4 mb-6">
                         <div>
                             <label for="dash-start-date" class="block text-sm font-medium text-slate-400">Data de Início</label>
@@ -486,48 +380,41 @@
                         </div>
                         <button id="dash-apply-filter" class="bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-cyan-500 transform hover:scale-105 shadow-lg shadow-cyan-500/20">Aplicar Filtro</button>
                     </div>
-                    <div id="kpi-container" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6 mb-8">
+                    
+                    <div id="kpi-container" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                         <div class="bg-slate-900/50 p-5 rounded-lg text-center border border-slate-700">
                             <p class="text-sm font-medium text-slate-400">Total de Auditorias</p>
                             <p id="kpi-total-entries" class="text-3xl font-bold text-cyan-400">0</p>
                         </div>
                         <div class="bg-slate-900/50 p-5 rounded-lg text-center border border-slate-700">
-                            <p class="text-sm font-medium text-slate-400">Total de Serviços</p>
-                            <p id="kpi-total-services" class="text-3xl font-bold text-green-400">0</p>
-                        </div>
-                        <div class="bg-slate-900/50 p-5 rounded-lg text-center border border-slate-700">
-                            <p class="text-sm font-medium text-slate-400">Tempo Médio (Auditoria)</p>
+                            <p class="text-sm font-medium text-slate-400">Tempo Médio de Auditoria</p>
                             <p id="kpi-avg-time" class="text-3xl font-bold text-cyan-400">0 min</p>
                         </div>
                     </div>
+                    
                     <div id="charts-container" class="space-y-8">
                         <div class="bg-slate-900/50 p-6 rounded-xl border border-slate-700">
-                            <h3 class="text-xl font-semibold mb-2 text-white">Movimentação por Dia</h3>
-                            <p class="text-sm text-slate-400 mb-4">Volume total de entradas ao longo do período selecionado.</p>
+                            <h3 class="text-xl font-semibold mb-2 text-white">Auditorias por Dia</h3>
                             <div class="relative h-96"><canvas id="entriesOverTimeChart"></canvas></div>
                         </div>
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                             <div class="bg-slate-900/50 p-6 rounded-xl border border-slate-700">
-                                <h3 class="text-xl font-semibold mb-2 text-white">Pico de Atividade por Hora</h3>
-                                <p class="text-sm text-slate-400 mb-4">Analise os horários de maior movimento na doca.</p>
+                                <h3 class="text-xl font-semibold mb-2 text-white">Atividade por Hora</h3>
                                 <div class="relative h-80"><canvas id="activityByHourChart"></canvas></div>
                             </div>
                             <div class="bg-slate-900/50 p-6 rounded-xl border border-slate-700">
-                                <h3 class="text-xl font-semibold mb-2 text-white">Fluxo por Dia da Semana</h3>
-                                <p class="text-sm text-slate-400 mb-4">Identifique os dias mais movimentados da semana.</p>
+                                <h3 class="text-xl font-semibold mb-2 text-white">Auditorias por Dia da Semana</h3>
                                 <div class="relative h-80"><canvas id="activityByWeekdayChart"></canvas></div>
                             </div>
                         </div>
                          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                              <div class="bg-slate-900/50 p-6 rounded-xl border border-slate-700">
-                                <h3 class="text-xl font-semibold mb-2 text-white">Top 5 Lojas (Carregamento)</h3>
-                                <p class="text-sm text-slate-400 mb-4">Lojas que mais recebem entregas.</p>
+                                <h3 class="text-xl font-semibold mb-2 text-white">Top 5 Lojas (Destino)</h3>
                                 <div class="relative h-80"><canvas id="topStoresChart"></canvas></div>
                             </div>
                             <div class="bg-slate-900/50 p-6 rounded-xl border border-slate-700">
-                                <h3 class="text-xl font-semibold mb-2 text-white">Top 5 Empresas de Serviço</h3>
-                                <p class="text-sm text-slate-400 mb-4">Empresas de serviço que mais acessam o local.</p>
-                                <div class="relative h-80"><canvas id="topCompaniesChart"></canvas></div>
+                                <h3 class="text-xl font-semibold mb-2 text-white">Top 5 Agentes (Produtividade)</h3>
+                                <div class="relative h-80"><canvas id="topAgentsChart"></canvas></div>
                             </div>
                         </div>
                     </div>
@@ -548,12 +435,9 @@
         </div>
     </div>
 
-    <!-- Modal de Auditoria CORRIGIDO PARA MOBILE -->
+    <!-- Modal de Auditoria (Paletes) -->
     <div id="audit-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm p-4 hidden">
-        <!-- Conteúdo do Modal: Coluna Flexível -->
         <div id="audit-modal-content" class="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-6xl flex flex-col max-h-[100dvh] overflow-hidden">
-            
-            <!-- Cabeçalho (Fixo) -->
             <div class="flex-none flex justify-between items-center p-4 border-b border-slate-700 bg-slate-800 z-10">
                 <div>
                     <h2 class="text-xl md:text-2xl font-bold text-white">Auditoria de Carregamento</h2>
@@ -561,18 +445,10 @@
                 </div>
                 <button onclick="closeAuditModal()" class="text-slate-400 hover:text-white text-3xl leading-none px-2">&times;</button>
             </div>
-            
-            <!-- Corpo Rolável (Grid + Form) -->
             <div class="flex-1 overflow-y-auto custom-scroll p-4 space-y-4 md:space-y-0 md:flex md:gap-4 bg-slate-800/50">
-                
-                <!-- Grid de Paletes -->
                 <div class="flex-grow">
-                    <div id="pallet-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 md:gap-4">
-                        <!-- Círculos de paletes serão inseridos aqui -->
-                    </div>
+                    <div id="pallet-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 md:gap-4"></div>
                 </div>
-                
-                <!-- Formulário do Palete (Fica abaixo no mobile, lado no desktop) -->
                 <div id="pallet-form-container" class="w-full md:max-w-sm bg-slate-900 p-4 rounded-lg border border-slate-700 hidden flex-shrink-0 shadow-lg">
                     <form id="pallet-form" class="space-y-3 md:space-y-4">
                         <input type="hidden" id="pallet-position">
@@ -581,12 +457,10 @@
                             <h3 class="text-lg font-semibold text-white">Palete Posição <span id="pallet-position-label" class="text-cyan-400"></span></h3>
                             <button type="button" id="close-form-mobile" class="md:hidden text-slate-400 hover:text-white">&times;</button>
                         </div>
-                        
                         <div>
                             <label for="pallet-number" class="block text-sm font-medium text-slate-400 mb-1">Número do Palete</label>
                             <input type="text" id="pallet-number" required class="w-full p-2 bg-slate-800 border border-slate-600 rounded-md text-slate-200 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500">
                         </div>
-                        
                         <div>
                             <label class="block text-sm font-medium text-slate-400 mb-1">Tipo de Palete</label>
                             <div class="flex flex-wrap gap-3">
@@ -594,22 +468,18 @@
                                 <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="pallet-type" value="amarelo" class="form-radio bg-slate-700 text-cyan-500 focus:ring-cyan-500"> <span class="text-sm">Amarelo</span></label>
                             </div>
                         </div>
-                        
                         <div class="flex items-center gap-2 py-1">
                              <input type="checkbox" id="pallet-has-juncao" class="form-checkbox h-5 w-5 bg-slate-700 rounded text-cyan-500 focus:ring-cyan-500 border-slate-600">
                              <label for="pallet-has-juncao" class="text-sm font-medium text-slate-400 cursor-pointer">Adicionar Junção (Rosa)?</label>
                         </div>
-                        
                         <div id="juncao-number-container" class="hidden animate-fadeIn">
                              <label for="juncao-number" class="block text-sm font-medium text-slate-400 mb-1">Número da Junção</label>
                             <input type="text" id="juncao-number" class="w-full p-2 bg-slate-800 border border-slate-600 rounded-md text-slate-200 focus:border-pink-500 focus:ring-1 focus:ring-pink-500">
                         </div>
-                        
                         <div>
                             <label for="pallet-obs" class="block text-sm font-medium text-slate-400 mb-1">Observações</label>
                             <textarea id="pallet-obs" rows="2" class="w-full p-2 bg-slate-800 border border-slate-600 rounded-md text-slate-200 text-sm"></textarea>
                         </div>
-                        
                         <div class="flex gap-2 pt-2">
                             <button type="submit" class="flex-grow bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-cyan-500 transition-colors shadow-lg">Salvar</button>
                             <button type="button" id="delete-pallet-btn" class="bg-red-600/80 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-500 hidden transition-colors">Excluir</button>
@@ -618,8 +488,6 @@
                     </form>
                 </div>
             </div>
-
-            <!-- Rodapé (Fixo) -->
             <div class="flex-none p-4 border-t border-slate-700 bg-slate-800 flex justify-end z-10">
                 <button id="finalize-audit-btn" class="w-full md:w-auto bg-green-600/90 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 shadow-lg transition-transform active:scale-95">
                     Finalizar Auditoria
@@ -631,7 +499,6 @@
     <!-- Modal de Detalhes do Histórico -->
     <div id="history-details-modal" class="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm flex items-center justify-center hidden z-40 p-4">
         <div id="history-details-modal-content" class="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-4xl flex flex-col fade-in overflow-hidden max-h-[90vh]">
-            <!-- Cabeçalho do Modal -->
             <div class="flex justify-between items-center p-4 border-b border-slate-700 flex-shrink-0">
                 <div>
                     <h2 class="text-xl md:text-2xl font-bold text-white">Detalhes da Auditoria</h2>
@@ -639,21 +506,13 @@
                 </div>
                 <button onclick="closeHistoryDetailsModal()" class="text-slate-400 hover:text-white text-3xl leading-none">&times;</button>
             </div>
-            <!-- Corpo do Modal -->
-            <div id="history-modal-body" class="p-6 overflow-y-auto space-y-6 custom-scroll">
-                <!-- Conteúdo será inserido dinamicamente aqui -->
-            </div>
-            <!-- Rodapé do Modal -->
-            <div id="history-modal-footer" class="p-4 border-t border-slate-700 flex justify-end flex-shrink-0">
-                <!-- Botão inserido via JS -->
-            </div>
+            <div id="history-modal-body" class="p-6 overflow-y-auto space-y-6 custom-scroll"></div>
+            <div id="history-modal-footer" class="p-4 border-t border-slate-700 flex justify-end flex-shrink-0"></div>
         </div>
     </div>
 
-
     <!-- Input de arquivo oculto -->
     <input type="file" accept="image/*" multiple class="hidden-file-input" id="report-image-input">
-
 
     <!-- Firebase SDK e Código Principal -->
     <script type="module">
@@ -662,7 +521,7 @@
             getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, 
             sendPasswordResetEmail, sendEmailVerification, signOut, updateProfile 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, collection, onSnapshot, addDoc, updateDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, collection, onSnapshot, addDoc, updateDoc, deleteDoc, getDoc, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC7J_J7JCagM65E5qkl1z-Kn2V360ldmdg",
@@ -673,34 +532,33 @@
             appId: "1:90146495031:web:04bdab47de65f7444cbdb2"
         };
 
-        const appId = 'controle-doca-cd-v1';
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'controle-doca-cd-prevencao-v5';
+        const getPublicPath = (col) => `artifacts/${appId}/public/data/${col}`;
+        const firebaseApp = initializeApp(firebaseConfig);
+        const db = getFirestore(firebaseApp);
+        const auth = getAuth(firebaseApp);
 
         Chart.defaults.color = '#94a3b8';
         Chart.defaults.borderColor = 'rgba(100, 116, 139, 0.2)';
 
         let currentUserId = null;
+        let currentUserProfile = null;
         let appInitialized = false;
+        
         let storesCache = [];
         let allEntriesCache = [];
         let vehicleHistoryCache = [];
-        let providerHistoryCache = [];
         let reportsCache = [];
+        let agentsCache = [];
+        
         let chartInstances = {};
-        let currentTeamMembers = [];
         let currentEntryStores = [];
-        let currentProviderStores = [];
         let currentReportImages = [];
-        let storesCurrentPage = 1;
-        const storesPerPage = 6;
-        let vehicleHistoryCurrentPage = 1;
-        const vehicleHistoryPerPage = 6;
-        let providerHistoryCurrentPage = 1;
-        const providerHistoryPerPage = 6;
-        let reportsCurrentPage = 1;
-        const reportsPerPage = 3;
+        
+        let storesCurrentPage = 1; const storesPerPage = 6;
+        let vehicleHistoryCurrentPage = 1; const vehicleHistoryPerPage = 6;
+        let reportsCurrentPage = 1; const reportsPerPage = 3;
+        let agentsCurrentPage = 1; const agentsPerPage = 6;
         
         const authContainer = document.getElementById('auth-container');
         const mainAppContainer = document.getElementById('main-app-container');
@@ -710,24 +568,152 @@
         const loadingOverlay = document.getElementById('loading-overlay');
         const loadingText = document.getElementById('loading-text');
 
-        onAuthStateChanged(auth, (user) => {
+        // Monitoramento de Autenticação
+        onAuthStateChanged(auth, async (user) => {
+            loadingOverlay.classList.remove('hidden');
+
             if (user && user.emailVerified) {
                 currentUserId = user.uid;
-                authContainer.classList.add('hidden');
-                mainAppContainer.classList.remove('hidden');
-                document.getElementById('welcome-message').textContent = `Bem-vindo(a), ${user.displayName || 'Usuário'}`;
-                if (!appInitialized) {
-                    initApp();
-                    appInitialized = true;
+                
+                try {
+                    const profileRef = doc(db, getPublicPath('user_profiles'), user.uid);
+                    const profileSnap = await getDoc(profileRef);
+                    
+                    if (profileSnap.exists()) {
+                        currentUserProfile = profileSnap.data();
+                        
+                        authContainer.classList.add('hidden');
+                        mainAppContainer.classList.remove('hidden');
+                        document.getElementById('welcome-message').textContent = `Bem-vindo(a), ${user.displayName || 'Usuário'}`;
+                        
+                        setupUIForRole();
+                        if (!appInitialized) {
+                            initApp();
+                            appInitialized = true;
+                        }
+                    } else {
+                        // Exige completar o perfil
+                        authContainer.classList.add('hidden');
+                        mainAppContainer.classList.add('hidden');
+                        document.getElementById('complete-profile-modal').classList.remove('hidden');
+                        await loadStoresForProfileSetup();
+                    }
+                } catch(e) {
+                    console.error("Erro ao buscar perfil", e);
                 }
             } else {
                 currentUserId = null;
+                currentUserProfile = null;
                 authContainer.classList.remove('hidden');
                 mainAppContainer.classList.add('hidden');
                 appInitialized = false;
             }
+            loadingOverlay.classList.add('hidden');
         });
 
+        // Configuração de Perfil (Modal de Cadastro Complementar)
+        document.getElementById('profile-role').addEventListener('change', (e) => {
+            const role = e.target.value;
+            document.getElementById('profile-admin-container').classList.toggle('hidden', role !== 'admin');
+            document.getElementById('profile-store-container').classList.toggle('hidden', role !== 'agente');
+        });
+
+        async function loadStoresForProfileSetup() {
+             const select = document.getElementById('profile-store');
+             try {
+                 const storesSnap = await getDocs(collection(db, getPublicPath('lojas')));
+                 select.innerHTML = '<option value="" disabled selected>Selecione sua base/loja...</option>';
+                 storesSnap.docs.forEach(doc => {
+                     const s = doc.data();
+                     select.innerHTML += `<option value="${doc.id}">${s.nomeFantasia} (#${s.numero})</option>`;
+                 });
+             } catch(e) {
+                 console.error(e);
+                 select.innerHTML = '<option value="" disabled selected>Erro ao carregar locais.</option>';
+             }
+        }
+
+        document.getElementById('profile-setup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            loadingOverlay.classList.remove('hidden');
+            
+            const role = document.getElementById('profile-role').value;
+            const adminCode = document.getElementById('profile-admin-code').value;
+            const storeId = document.getElementById('profile-store').value;
+
+            if (role === 'admin' && adminCode !== 'PREV2026') {
+                showStatusMessage('Código de supervisor inválido.', 'error');
+                loadingOverlay.classList.add('hidden');
+                return;
+            }
+
+            if (role === 'agente' && !storeId) {
+                showStatusMessage('Selecione o local/base que você atua.', 'error');
+                loadingOverlay.classList.add('hidden');
+                return;
+            }
+
+            let selectedStoreObj = null;
+            if (role === 'agente') {
+                const storeDoc = await getDoc(doc(db, getPublicPath('lojas'), storeId));
+                if(storeDoc.exists()) {
+                    selectedStoreObj = { id: storeDoc.id, ...storeDoc.data() };
+                }
+            }
+
+            const profile = {
+                nome: auth.currentUser.displayName || 'Usuário',
+                role: role,
+                storeId: role === 'agente' ? storeId : null,
+                store: selectedStoreObj,
+                createdAt: new Date()
+            };
+
+            try {
+                const profileRef = doc(db, getPublicPath('user_profiles'), currentUserId);
+                await setDoc(profileRef, profile);
+                currentUserProfile = profile;
+
+                document.getElementById('complete-profile-modal').classList.add('hidden');
+                mainAppContainer.classList.remove('hidden');
+                
+                setupUIForRole();
+                initApp();
+                appInitialized = true;
+            } catch(error) {
+                showStatusMessage('Erro ao salvar o perfil.', 'error');
+            }
+            loadingOverlay.classList.add('hidden');
+        });
+
+        document.getElementById('cancel-profile-setup').addEventListener('click', async () => {
+            await signOut(auth);
+            window.location.reload();
+        });
+
+        function setupUIForRole() {
+            const isAdmin = currentUserProfile.role === 'admin';
+            const badge = document.getElementById('user-role-badge');
+            
+            if(isAdmin) {
+                badge.textContent = `Supervisor: ${currentUserProfile.nome}`;
+                badge.className = "px-3 py-1 text-xs font-bold rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30";
+            } else {
+                const baseName = currentUserProfile.store ? currentUserProfile.store.nomeFantasia : 'Base não def.';
+                badge.textContent = `Agente: ${currentUserProfile.nome} (${baseName})`;
+                badge.className = "px-3 py-1 text-xs font-bold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+            }
+
+            document.querySelectorAll('.admin-only').forEach(el => {
+                if (isAdmin) {
+                    el.classList.remove('admin-only');
+                } else {
+                    el.style.display = 'none';
+                }
+            });
+        }
+
+        // Fluxo de Autenticação Visual
         function showAuthForm(formToShow) {
             loginFormContainer.classList.add('hidden');
             registerFormContainer.classList.add('hidden');
@@ -740,6 +726,7 @@
         document.getElementById('show-reset').addEventListener('click', (e) => { e.preventDefault(); showAuthForm(resetFormContainer); });
         document.getElementById('back-to-login').addEventListener('click', (e) => { e.preventDefault(); showAuthForm(loginFormContainer); });
 
+        // Ações de Autenticação Firebase
         document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('register-name').value;
@@ -753,7 +740,6 @@
                 document.getElementById('register-form').reset();
                 showAuthForm(loginFormContainer);
             } catch (error) {
-                console.error("Erro no cadastro:", error);
                 showStatusMessage(`Erro no cadastro: ${error.message}`, 'error', 'auth');
             }
         });
@@ -782,7 +768,6 @@
                     });
                 }
             } catch (error) {
-                console.error("Erro no login:", error);
                 showStatusMessage("Email ou senha inválidos.", 'error', 'auth');
             }
         });
@@ -795,27 +780,28 @@
                 showStatusMessage("Link de recuperação enviado para o seu email.", 'success', 'auth');
                 showAuthForm(loginFormContainer);
             } catch (error) {
-                console.error("Erro ao recuperar senha:", error);
                 showStatusMessage(`Erro: ${error.message}`, 'error', 'auth');
             }
         });
 
         document.getElementById('logout-btn').addEventListener('click', async () => {
             await signOut(auth);
+            window.location.reload();
         });
 
+        // Inicialização do App
         function initApp() {
             setupMasks();
             setupEventListeners();
             listenForStores();
             listenForEntries();
-            listenForProviders();
             listenForReports();
+            listenForAgents();
             showTab('control');
         }
 
         window.showTab = (tabName) => {
-            ['control', 'stores', 'dashboard', 'providers', 'reports'].forEach(id => {
+            ['control', 'stores', 'dashboard', 'reports', 'collaborators'].forEach(id => {
                 const tab = document.getElementById(`tab-${id}`);
                 const tabBtn = document.getElementById(`tab-btn-${id}`);
                 if (tab) tab.classList.add('hidden');
@@ -836,13 +822,13 @@
                 storesCurrentPage = 1;
                 renderStoresPage();
             }
-             if (tabName === 'reports') {
+            if (tabName === 'reports') {
                 reportsCurrentPage = 1;
                 renderReportsPage();
             }
-             if (tabName === 'providers') {
-                providerHistoryCurrentPage = 1;
-                renderProviderHistoryPage();
+            if (tabName === 'collaborators') {
+                agentsCurrentPage = 1;
+                renderAgentsPage();
             }
             if (tabName === 'dashboard') {
                 setDefaultDateFilters();
@@ -851,10 +837,7 @@
         };
 
         function showStatusMessage(message, type = 'success', context = 'app') {
-            const el = context === 'auth' 
-                ? document.getElementById('authStatusMessage') 
-                : document.getElementById('statusMessage');
-            
+            const el = context === 'auth' ? document.getElementById('authStatusMessage') : document.getElementById('statusMessage');
             el.innerHTML = message;
             const successClasses = 'bg-green-500/20 text-green-300 border border-green-500/30';
             const errorClasses = 'bg-red-500/20 text-red-300 border border-red-500/30';
@@ -867,51 +850,53 @@
         }
         
         function setupEventListeners() {
+            // Formulários e Botões principais
             document.getElementById('store-form').addEventListener('submit', handleAddStore);
             document.getElementById('entry-form').addEventListener('submit', handleAddEntry);
             document.getElementById('download-vehicle-pdf-btn').addEventListener('click', downloadVehiclePDF);
-            document.getElementById('provider-form').addEventListener('submit', handleAddProvider);
-            document.getElementById('download-providers-pdf-btn').addEventListener('click', downloadProvidersPDF);
             document.getElementById('dash-apply-filter').addEventListener('click', updateDashboard);
-            document.getElementById('add-member-btn').addEventListener('click', handleAddMember);
             document.getElementById('add-entry-store-btn').addEventListener('click', handleAddEntryStore);
-            document.getElementById('add-provider-store-btn').addEventListener('click', handleAddProviderStore);
             document.getElementById('report-form').addEventListener('submit', handleAddReport);
+            
+            // Buscas
             document.getElementById('vehicle-history-search').addEventListener('input', renderVehicleHistoryPage);
-            document.getElementById('provider-history-search').addEventListener('input', renderProviderHistoryPage);
-            document.getElementById('store-management-search').addEventListener('input', renderStoresPage);
+            const storeSearchInputEl = document.getElementById('store-management-search');
+            if (storeSearchInputEl) {
+                storeSearchInputEl.addEventListener('input', renderStoresPage);
+            }
+            const agentSearchInputEl = document.getElementById('agent-search');
+            if (agentSearchInputEl) {
+                agentSearchInputEl.addEventListener('input', renderAgentsPage);
+            }
+            
+            // Imagens do Relatório
             document.getElementById('add-report-image-btn').addEventListener('click', () => {
                 document.getElementById('report-image-input').click();
             });
             document.getElementById('report-image-input').addEventListener('change', handleReportFileSelect);
 
+            // Bloqueios e Inputs
             document.getElementById('conferente-matricula').addEventListener('input', restrictToNumbers);
             document.getElementById('auditor-matricula').addEventListener('input', restrictToNumbers);
-            document.getElementById('provider-member-doc').addEventListener('input', restrictToNumbers);
             document.getElementById('doca-number').addEventListener('input', restrictToNumbers);
 
             const entryStoreSearch = document.getElementById('store-search-input');
             entryStoreSearch.addEventListener('input', (e) => handleStoreSearch(e, 'entry'));
             entryStoreSearch.addEventListener('focus', (e) => handleStoreSearch(e, 'entry'));
 
-            const providerStoreSearch = document.getElementById('provider-store-search');
-            providerStoreSearch.addEventListener('input', (e) => handleStoreSearch(e, 'provider'));
-            providerStoreSearch.addEventListener('focus', (e) => handleStoreSearch(e, 'provider'));
-            
+            // Menu Sanduíche
             const menuToggleBtn = document.getElementById('menu-toggle-btn');
             const mainMenu = document.getElementById('main-menu');
             menuToggleBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 mainMenu.classList.toggle('hidden');
             });
-
             document.addEventListener('click', (e) => {
                 if (!mainMenu.classList.contains('hidden') && !mainMenu.contains(e.target) && !menuToggleBtn.contains(e.target)) {
                     mainMenu.classList.add('hidden');
                 }
                 if (!e.target.closest('.search-container')) {
                     document.getElementById('store-search-results').classList.add('hidden');
-                    document.getElementById('provider-store-search-results').classList.add('hidden');
                 }
             });
 
@@ -922,7 +907,6 @@
             document.getElementById('pallet-form').addEventListener('submit', savePalletData);
             document.getElementById('delete-pallet-btn').addEventListener('click', deletePalletData);
             
-            // Fechar formulário no mobile
             document.getElementById('cancel-pallet-form').addEventListener('click', () => {
                 document.getElementById('pallet-form-container').classList.add('hidden');
             });
@@ -932,18 +916,101 @@
 
             document.getElementById('finalize-audit-btn').addEventListener('click', handleFinalizeAudit);
         }
-        
-        const getCollectionPath = (collectionName) => `artifacts/${appId}/users/${currentUserId}/${collectionName}`;
 
         function setupMasks() {
             IMask(document.getElementById('placa'), { mask: [{ mask: 'aaa-0000' }, { mask: 'aaa0a00' }] });
-            IMask(document.getElementById('provider-plate'), { mask: [{ mask: 'aaa-0000' }, { mask: 'aaa0a00' }] });
         }
         
         function restrictToNumbers(event) {
             event.target.value = event.target.value.replace(/[^0-9.-]/g, '');
         }
 
+        // --- SISTEMA DE GERENCIAMENTO DE AGENTES (ADMIN) ---
+        function listenForAgents() {
+            if (!currentUserId || currentUserProfile.role !== 'admin') return;
+            const profilesCol = collection(db, getPublicPath('user_profiles'));
+            onSnapshot(profilesCol, (snapshot) => {
+                agentsCache = [];
+                snapshot.docs.forEach(doc => {
+                    const data = doc.data();
+                    if (data.role === 'agente') {
+                        agentsCache.push({ id: doc.id, ...data });
+                    }
+                });
+                agentsCache.sort((a,b) => (a.nome || '').localeCompare(b.nome || ''));
+                
+                const tabCollab = document.getElementById('tab-collaborators');
+                if (tabCollab && !tabCollab.classList.contains('hidden')) {
+                    renderAgentsPage();
+                }
+            }, (error) => {
+                console.error("Erro ao escutar agentes:", error);
+            });
+        }
+
+        function renderAgentsPage() {
+            const listEl = document.getElementById('agents-list');
+            if(!listEl) return;
+            listEl.innerHTML = '';
+            
+            const searchInput = document.getElementById('agent-search');
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+
+            const filteredAgents = agentsCache.filter(agent => {
+                const storeName = agent.store ? agent.store.nomeFantasia.toLowerCase() : '';
+                return (agent.nome && agent.nome.toLowerCase().includes(searchTerm)) || storeName.includes(searchTerm);
+            });
+
+            if (filteredAgents.length === 0) {
+                listEl.innerHTML = '<p class="text-slate-500 col-span-full">Nenhum agente encontrado.</p>';
+                renderPaginationControls('agents', 0, agentsCurrentPage, changeAgentsPage);
+                return;
+            }
+
+            const startIndex = (agentsCurrentPage - 1) * agentsPerPage;
+            const endIndex = startIndex + agentsPerPage;
+            const agentsToShow = filteredAgents.slice(startIndex, endIndex);
+
+            agentsToShow.forEach(agent => {
+                const div = document.createElement('div');
+                div.className = 'p-4 bg-slate-900/50 rounded-lg border border-slate-700 flex justify-between items-center transition-all hover:border-cyan-500';
+                const storeText = agent.store ? `${agent.store.nomeFantasia} (#${agent.store.numero})` : 'Base não definida';
+                
+                div.innerHTML = `
+                    <div>
+                        <p class="font-bold text-slate-200">${agent.nome}</p>
+                        <p class="text-sm text-cyan-400">${storeText}</p>
+                        <p class="text-xs text-slate-500 mt-1">Desde: ${formatDateTime(agent.createdAt).split(' ')[0]}</p>
+                    </div>
+                    <button class="text-red-500 hover:text-red-400 p-2 transform hover:scale-110 transition-transform" onclick="deleteAgent('${agent.id}')" title="Excluir Agente">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </button>
+                `;
+                listEl.appendChild(div);
+            });
+
+            renderPaginationControls('agents', Math.ceil(filteredAgents.length / agentsPerPage), agentsCurrentPage, changeAgentsPage);
+        }
+
+        window.changeAgentsPage = (page) => {
+            agentsCurrentPage = page;
+            renderAgentsPage();
+        }
+
+        window.deleteAgent = async (agentId) => {
+            if (!currentUserId || currentUserProfile.role !== 'admin') return;
+            if (confirm('Tem certeza que deseja excluir este agente? Ele perderá o acesso ao sistema imediatamente. Esta ação não pode ser desfeita.')) {
+                try {
+                    await deleteDoc(doc(db, getPublicPath('user_profiles'), agentId));
+                    showStatusMessage('Agente excluído com sucesso.');
+                } catch (error) {
+                    showStatusMessage('Não foi possível excluir o agente.', 'error');
+                }
+            }
+        };
+
+
+        // --- SISTEMA DE BUSCA E SELEÇÃO DE LOJAS ---
         function handleStoreSearch(e, formType) {
             const searchTerm = e.target.value.toLowerCase();
             const results = storesCache.filter(store => 
@@ -955,7 +1022,7 @@
         }
 
         function renderStoreSearchResults(results, formType) {
-            const resultsContainerId = formType === 'entry' ? 'store-search-results' : 'provider-store-search-results';
+            const resultsContainerId = 'store-search-results';
             const resultsContainer = document.getElementById(resultsContainerId);
             resultsContainer.innerHTML = '';
             if (results.length === 0) {
@@ -973,8 +1040,8 @@
         }
 
         function selectStore(store, formType) {
-            const inputId = formType === 'entry' ? 'store-search-input' : 'provider-store-search';
-            const resultsId = formType === 'entry' ? 'store-search-results' : 'provider-store-search-results';
+            const inputId = 'store-search-input';
+            const resultsId = 'store-search-results';
             
             const inputEl = document.getElementById(inputId);
             inputEl.value = `${store.nomeFantasia} (#${store.numero})`;
@@ -983,9 +1050,64 @@
             document.getElementById(resultsId).classList.add('hidden');
         }
 
+        function handleAddEntryStore() {
+            const inputEl = document.getElementById('store-search-input');
+            const selectedStoreString = inputEl.dataset.selectedStore;
+
+            if (!selectedStoreString) {
+                showStatusMessage("Por favor, busque e selecione uma loja válida.", "error");
+                return;
+            }
+            const store = JSON.parse(selectedStoreString);
+            
+            if (currentEntryStores.some(s => s.id === store.id)) {
+                showStatusMessage("Essa loja já foi adicionada.", "error");
+                return;
+            }
+
+            currentEntryStores.push(store);
+            renderStoresList('entry');
+            inputEl.value = '';
+            delete inputEl.dataset.selectedStore;
+            inputEl.focus();
+        }
+
+        function renderStoresList(type) {
+            const listId = 'entry-stores-list';
+            const storesArray = currentEntryStores;
+            const listEl = document.getElementById(listId);
+            listEl.innerHTML = '';
+
+            if (storesArray.length > 0) {
+                const title = document.createElement('h4');
+                title.className = 'text-sm font-semibold text-slate-400 mb-2';
+                title.textContent = 'Lojas Adicionadas:';
+                listEl.appendChild(title);
+            }
+
+            storesArray.forEach((store, index) => {
+                const storeDiv = document.createElement('div');
+                storeDiv.className = 'flex justify-between items-center p-2 bg-slate-900/50 rounded-md border border-slate-700';
+                storeDiv.innerHTML = `
+                    <div>
+                        <p class="font-medium text-slate-300">${store.nomeFantasia} (#${store.numero})</p>
+                        <p class="text-sm text-slate-500">${store.nomeReal}</p>
+                    </div>
+                    <button type="button" class="text-red-500 hover:text-red-400 text-2xl leading-none" onclick="removeEntryStore(${index})">&times;</button>
+                `;
+                listEl.appendChild(storeDiv);
+            });
+        }
+
+        window.removeEntryStore = (index) => {
+            currentEntryStores.splice(index, 1);
+            renderStoresList('entry');
+        }
+
+        // --- SISTEMA DE CADASTRO DE LOJAS ---
         async function handleAddStore(e) {
             e.preventDefault();
-            if (!currentUserId) return;
+            if (!currentUserId || currentUserProfile.role !== 'admin') return;
             const form = e.target;
             const newStore = {
                 numero: form['store-number'].value,
@@ -993,39 +1115,43 @@
                 nomeFantasia: form['store-fantasy-name'].value,
             };
             try {
-                await addDoc(collection(db, getCollectionPath('lojas')), newStore);
+                await addDoc(collection(db, getPublicPath('lojas')), newStore);
                 showStatusMessage("Loja adicionada com sucesso!");
                 form.reset();
             } catch (error) {
-                console.error("Erro ao adicionar loja: ", error);
-                showStatusMessage("Erro ao salvar a loja. Verifique suas chaves e regras do Firebase.", "error");
+                showStatusMessage("Erro ao salvar a loja.", "error");
             }
         }
 
         function listenForStores() {
             if (!currentUserId) return;
-            const storesCol = collection(db, getCollectionPath('lojas'));
+            const storesCol = collection(db, getPublicPath('lojas'));
             onSnapshot(storesCol, (snapshot) => {
                 storesCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
                                          .sort((a, b) => a.nomeFantasia.localeCompare(b.nomeFantasia));
-                
                 storesCurrentPage = 1; 
-                renderStoresPage();
+                
+                const tabStores = document.getElementById('tab-stores');
+                if (tabStores && !tabStores.classList.contains('hidden')) {
+                    renderStoresPage();
+                }
             }, (error) => {
                 console.error("Erro ao escutar lojas:", error);
-                showStatusMessage("Não foi possível carregar as lojas. Verifique a configuração e as regras.", "error");
             });
         }
         
         function renderStoresPage() {
             const storesListEl = document.getElementById('stores-list');
+            if(!storesListEl) return;
             storesListEl.innerHTML = '';
-            const searchTerm = document.getElementById('store-management-search').value.toLowerCase();
+            
+            const searchInput = document.getElementById('store-management-search');
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
 
             const filteredStores = storesCache.filter(store => {
-                return (store.nomeFantasia.toLowerCase().includes(searchTerm)) ||
-                       (store.nomeReal.toLowerCase().includes(searchTerm)) ||
-                       (store.numero.includes(searchTerm));
+                return (store.nomeFantasia && store.nomeFantasia.toLowerCase().includes(searchTerm)) ||
+                       (store.nomeReal && store.nomeReal.toLowerCase().includes(searchTerm)) ||
+                       (store.numero && store.numero.includes(searchTerm));
             });
 
             if (filteredStores.length === 0) {
@@ -1040,7 +1166,7 @@
 
             storesToShow.forEach(store => {
                 const storeDiv = document.createElement('div');
-                storeDiv.className = 'flex justify-between items-center p-3 bg-slate-900/50 rounded-lg border border-slate-700';
+                storeDiv.className = 'flex justify-between items-center p-3 bg-slate-900/50 rounded-lg border border-slate-700 transition-all hover:border-cyan-500';
                 storeDiv.innerHTML = `<div><p class="font-semibold text-slate-200">${store.nomeFantasia} (#${store.numero})</p><p class="text-sm text-slate-400">${store.nomeReal}</p></div><button class="text-red-500 hover:text-red-400 font-medium" onclick="deleteStore('${store.id}')">Excluir</button>`;
                 storesListEl.appendChild(storeDiv);
             });
@@ -1054,19 +1180,18 @@
         }
 
         window.deleteStore = async (storeId) => {
-            if (!currentUserId) return;
-            // TODO: Substituir confirm por um modal customizado
-            if (confirm('Tem certeza que deseja excluir esta loja? Esta ação não pode ser desfeita.')) {
+            if (!currentUserId || currentUserProfile.role !== 'admin') return;
+            if (confirm('Tem certeza que deseja excluir este local? Esta ação não pode ser desfeita.')) {
                 try {
-                    await deleteDoc(doc(db, getCollectionPath('lojas'), storeId));
+                    await deleteDoc(doc(db, getPublicPath('lojas'), storeId));
                     showStatusMessage('Loja excluída com sucesso.');
                 } catch (error) {
-                    console.error('Erro ao excluir loja:', error);
                     showStatusMessage('Não foi possível excluir a loja.', 'error');
                 }
             }
         };
 
+        // --- SISTEMA DE AUDITORIA (ENTRADAS) ---
         async function handleAddEntry(e) {
             e.preventDefault();
             if (!currentUserId) return;
@@ -1078,6 +1203,9 @@
 
             const form = e.target;
             const newEntry = {
+                agenteId: currentUserId,
+                agenteNome: currentUserProfile.nome,
+                agenteLoja: currentUserProfile.store ? currentUserProfile.store.nomeFantasia : 'N/A',
                 placa: form.querySelector('#placa').value.toUpperCase(),
                 doca: form.querySelector('#doca-number').value,
                 tipoVeiculo: form.querySelector('#tipo-veiculo').value,
@@ -1086,31 +1214,28 @@
                 auditorNome: form.querySelector('#auditor-nome').value,
                 auditorMatricula: form.querySelector('#auditor-matricula').value,
                 lojas: currentEntryStores,
-                paletes: [], // Inicia com array de paletes vazio
+                paletes: [], 
                 dataEntrada: new Date(),
                 dataSaida: null,
                 status: 'ativo'
             };
             try {
-                await addDoc(collection(db, getCollectionPath('registros')), newEntry);
+                await addDoc(collection(db, getPublicPath('registros')), newEntry);
                 showStatusMessage("Auditoria iniciada com sucesso!");
                 form.reset();
                 currentEntryStores = [];
                 renderStoresList('entry');
                 document.getElementById('store-search-input').value = '';
-
             } catch (error) {
-                console.error("Erro ao registrar entrada: ", error);
                 showStatusMessage("Erro ao registrar a entrada. Tente novamente.", "error");
             }
         }
 
         function listenForEntries() {
             if (!currentUserId) return;
-            const entriesCol = collection(db, getCollectionPath('registros'));
+            const entriesCol = collection(db, getPublicPath('registros'));
             onSnapshot(entriesCol, (snapshot) => {
                 const activeListEl = document.getElementById('active-entries-list');
-                
                 activeListEl.innerHTML = '';
                 allEntriesCache = [];
 
@@ -1119,13 +1244,16 @@
 
                 snapshot.docs.forEach(doc => {
                     const entry = { id: doc.id, ...doc.data() };
-                    allEntriesCache.push(entry);
-                    if (entry.status === 'ativo') { activeEntries.push(entry); } 
-                    else { finishedEntries.push(entry); }
+                    
+                    if (currentUserProfile.role === 'admin' || entry.agenteId === currentUserId) {
+                        allEntriesCache.push(entry);
+                        if (entry.status === 'ativo') { activeEntries.push(entry); } 
+                        else { finishedEntries.push(entry); }
+                    }
                 });
                 
                 if (activeEntries.length === 0) {
-                     activeListEl.innerHTML = '<p class="text-slate-500">Nenhum veículo em carregamento no momento.</p>';
+                     activeListEl.innerHTML = '<p class="text-slate-500">Nenhum veículo em auditoria no momento.</p>';
                 } else {
                      activeEntries.sort((a,b) => b.dataEntrada.toDate() - a.dataEntrada.toDate()).forEach(renderActiveEntry);
                 }
@@ -1137,7 +1265,7 @@
                 vehicleHistoryCurrentPage = 1;
                 renderVehicleHistoryPage();
                 
-                // ATUALIZAÇÃO: Se um modal de auditoria estiver aberto, atualiza o grid
+                // Atualiza modal se estiver aberto
                 const openAuditModal = document.getElementById('audit-modal');
                 if (!openAuditModal.classList.contains('hidden')) {
                     const entryId = openAuditModal.dataset.entryId;
@@ -1146,10 +1274,6 @@
                         renderPalletGrid(updatedEntry);
                     }
                 }
-
-            }, (error) => {
-                console.error("Erro ao escutar registros:", error);
-                showStatusMessage("Não foi possível carregar os registros.", "error");
             });
         }
         
@@ -1164,6 +1288,7 @@
                 return (entry.placa && entry.placa.toLowerCase().includes(searchTerm)) ||
                        (entry.conferenteNome && entry.conferenteNome.toLowerCase().includes(searchTerm)) ||
                        (entry.auditorNome && entry.auditorNome.toLowerCase().includes(searchTerm)) ||
+                       (entry.agenteNome && entry.agenteNome.toLowerCase().includes(searchTerm)) ||
                        (storesText.toLowerCase().includes(searchTerm));
             });
 
@@ -1202,12 +1327,15 @@
             entryDiv.className = 'p-4 bg-slate-700/50 border border-slate-600 rounded-lg card cursor-pointer';
             entryDiv.setAttribute('onclick', `openAuditModal('${entry.id}')`);
 
+            const showAgent = currentUserProfile.role === 'admin' ? `<p class="text-sm text-cyan-300 mt-2 font-semibold">Agente responsável: ${entry.agenteNome}</p>` : '';
+
             entryDiv.innerHTML = `
                 <div class="flex flex-wrap justify-between items-start gap-4">
                     <div class="flex-grow">
                         <p class="font-bold text-lg text-cyan-400">${entry.placa.toUpperCase() || 'N/A'} <span class="text-base text-slate-400 font-medium">(Doca: ${entry.doca || 'N/A'})</span></p>
                         <p class="text-sm text-slate-300"><span class="font-semibold text-slate-400">Conferente:</span> ${entry.conferenteNome}</p>
                         <p class="text-sm text-slate-300"><span class="font-semibold text-slate-400">Auditor:</span> ${entry.auditorNome}</p>
+                        ${showAgent}
                         <p class="text-sm text-slate-400 mt-2"><span class="font-semibold">Início:</span> ${formatDateTime(entry.dataEntrada)}</p>
                     </div>
                     <div class="text-right">
@@ -1256,6 +1384,8 @@
                 }
             } 
 
+            const showAgent = currentUserProfile.role === 'admin' ? `<p class="text-sm font-semibold text-cyan-300 border-t border-slate-700/50 pt-2 mt-2">Agente: ${entry.agenteNome}</p>` : '';
+
             card.innerHTML = `
                 <div>
                     <div class="flex justify-between items-start">
@@ -1272,6 +1402,7 @@
                             <p class="font-semibold text-slate-200">${entry.auditorNome} (Auditor)</p>
                             <p class="text-sm text-slate-400">${entry.conferenteNome} (Conferente)</p>
                         </div>
+                        ${showAgent}
                     </div>
                 </div>
                 <div class="text-xs text-slate-400 border-t border-slate-700 pt-2 space-y-1">
@@ -1281,7 +1412,17 @@
             historyListEl.appendChild(card);
         }
         
-        // --- INÍCIO: NOVAS FUNÇÕES PARA O MODAL DE AUDITORIA ---
+        window.toggleStoreList = (entryId, showExpanded) => {
+            const collapsedDiv = document.getElementById(`history-stores-collapsed-${entryId}`);
+            const expandedDiv = document.getElementById(`history-stores-expanded-${entryId}`);
+            if (showExpanded) {
+                collapsedDiv.classList.add('hidden');
+                expandedDiv.classList.remove('hidden');
+            } else {
+                collapsedDiv.classList.remove('hidden');
+                expandedDiv.classList.add('hidden');
+            }
+        };
 
         const vehicleTypeConfig = {
             'toco': { name: 'Toco / 3/4', capacity: 8 },
@@ -1297,7 +1438,6 @@
             modal.dataset.entryId = entryId;
             modal.classList.remove('hidden');
 
-            // Preenche o cabeçalho
             const headerEl = document.getElementById('audit-modal-header');
             headerEl.innerHTML = `
                 <span><strong>Placa:</strong> ${entry.placa}</span>
@@ -1339,7 +1479,7 @@
                     if (palletData.temJuncao) {
                         circle.classList.add('juncao');
                     } else {
-                        circle.classList.add(palletData.tipo); // 'comum' ou 'amarelo'
+                        circle.classList.add(palletData.tipo); 
                     }
                 } else {
                      circle.innerHTML = `<span>#${i}</span>`;
@@ -1382,7 +1522,6 @@
 
             formContainer.classList.remove('hidden');
             
-            // Scroll para o formulário em mobile para garantir visibilidade
             if(window.innerWidth < 768) {
                 formContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
@@ -1393,7 +1532,7 @@
             const form = e.target;
             const position = parseInt(form.querySelector('#pallet-position').value);
             const entryId = form.querySelector('#pallet-entry-id').value;
-            const entryDocRef = doc(db, getCollectionPath('registros'), entryId);
+            const entryDocRef = doc(db, getPublicPath('registros'), entryId);
             
             const newPalletData = {
                 posicao: position,
@@ -1418,16 +1557,8 @@
                 }
                 
                 await updateDoc(entryDocRef, { paletes: existingPallets });
-
-                const cachedEntry = allEntriesCache.find(e => e.id === entryId);
-                if (cachedEntry) {
-                    cachedEntry.paletes = existingPallets;
-                    renderPalletGrid(cachedEntry);
-                }
-                
                 document.getElementById('pallet-form-container').classList.add('hidden');
             } catch (error) {
-                console.error("Erro ao salvar palete:", error);
                 showStatusMessage("Não foi possível salvar os dados do palete.", "error");
             }
         }
@@ -1436,25 +1567,16 @@
             const form = document.getElementById('pallet-form');
             const position = parseInt(form.querySelector('#pallet-position').value);
             const entryId = form.querySelector('#pallet-entry-id').value;
-            const entryDocRef = doc(db, getCollectionPath('registros'), entryId);
+            const entryDocRef = doc(db, getPublicPath('registros'), entryId);
 
             try {
                 const entryDoc = await getDoc(entryDocRef);
                 const entryData = entryDoc.data();
                 
                 const updatedPallets = entryData.paletes.filter(p => p.posicao !== position);
-                
                 await updateDoc(entryDocRef, { paletes: updatedPallets });
-                
-                const cachedEntry = allEntriesCache.find(e => e.id === entryId);
-                if (cachedEntry) {
-                    cachedEntry.paletes = updatedPallets;
-                    renderPalletGrid(cachedEntry);
-                }
-
                 document.getElementById('pallet-form-container').classList.add('hidden');
             } catch (error) {
-                console.error("Erro ao excluir palete:", error);
                 showStatusMessage("Não foi possível excluir os dados do palete.", "error");
             }
         }
@@ -1464,7 +1586,7 @@
             if (!entryId) return;
 
             if (confirm('Tem certeza que deseja finalizar esta auditoria?')) {
-                const entryDocRef = doc(db, getCollectionPath('registros'), entryId);
+                const entryDocRef = doc(db, getPublicPath('registros'), entryId);
                 try {
                     await updateDoc(entryDocRef, {
                         status: 'finalizado',
@@ -1473,13 +1595,11 @@
                     showStatusMessage('Auditoria finalizada com sucesso.');
                     closeAuditModal();
                 } catch (error) {
-                    console.error('Erro ao finalizar auditoria:', error);
                     showStatusMessage('Não foi possível finalizar a auditoria.', 'error');
                 }
             }
         }
 
-        // --- INÍCIO: NOVAS FUNÇÕES PARA O MODAL DE DETALHES DO HISTÓRICO ---
         window.showHistoryDetailsModal = (entryId) => {
             const entry = vehicleHistoryCache.find(e => e.id === entryId);
             if (!entry) return;
@@ -1493,8 +1613,8 @@
                 <span><strong>Placa:</strong> ${entry.placa}</span>
                 <span><strong>Doca:</strong> ${entry.doca || 'N/A'}</span>
                 <span><strong>Veículo:</strong> ${vehicleTypeConfig[entry.tipoVeiculo]?.name || 'N/A'}</span>
-                <span><strong>Conferente:</strong> ${entry.conferenteNome} (#${entry.conferenteMatricula})</span>
-                <span><strong>Auditor:</strong> ${entry.auditorNome} (#${entry.auditorMatricula})</span>
+                <span><strong>Conferente:</strong> ${entry.conferenteNome}</span>
+                <span><strong>Auditor:</strong> ${entry.auditorNome}</span>
             `;
             
             const paletes = entry.paletes || [];
@@ -1529,7 +1649,7 @@
             `;
 
             footerEl.innerHTML = `
-                <button class="bg-green-600/80 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-600" onclick="downloadVehicleDetailedPDF('${entry.id}')">
+                <button class="bg-green-600/80 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-600 transform hover:scale-105" onclick="downloadVehicleDetailedPDF('${entry.id}')">
                     Exportar PDF Detalhado
                 </button>
             `;
@@ -1570,6 +1690,12 @@
             yPosition += 5;
             doc.text(`Conferente: ${entry.conferenteNome} (#${entry.conferenteMatricula})`, 14, yPosition);
             yPosition += 5;
+            
+            if (currentUserProfile.role === 'admin') {
+                doc.text(`Agente de Prevenção: ${entry.agenteNome} (${entry.agenteLoja})`, 14, yPosition);
+                yPosition += 5;
+            }
+
             doc.text(`Entrada: ${formatDateTime(entry.dataEntrada)} | Saída: ${formatDateTime(entry.dataSaida)}`, 14, yPosition);
             yPosition += 10;
 
@@ -1591,7 +1717,7 @@
 
             const addPalletTable = (title, data, headers, headColor) => {
                 if (data.length > 0) {
-                     if (yPosition + 30 > doc.internal.pageSize.getHeight()) { // Check if new table fits
+                     if (yPosition + 30 > doc.internal.pageSize.getHeight()) { 
                         doc.addPage();
                         yPosition = 20;
                      }
@@ -1617,8 +1743,6 @@
             doc.save(`auditoria_detalhada_${entry.placa}_${entry.id.substring(0,6)}.pdf`);
             loadingOverlay.classList.add('hidden');
         };
-
-        // --- FIM: NOVAS FUNÇÕES ---
 
         async function downloadVehiclePDF() { 
             loadingOverlay.classList.remove('hidden');
@@ -1650,10 +1774,14 @@
             }
             
             const reportTitle = "Relatório de Auditorias de Carregamento";
-            const headers = ["Lojas", "Placa", "Doca", "Auditor", "Conferente", "Entrada", "Saída", "Paletes"];
+            const headers = currentUserProfile.role === 'admin' 
+                ? ["Agente (Base)", "Lojas", "Placa", "Doca", "Auditor", "Conferente", "Entrada", "Saída", "Paletes"]
+                : ["Lojas", "Placa", "Doca", "Auditor", "Conferente", "Entrada", "Saída", "Paletes"];
+
             const rows = filteredHistory.map(e => {
-                const storesText = Array.isArray(e.lojas) ? e.lojas.map(l => `${l.nomeFantasia} (#${l.numero})`).join(', ') : ``;
-                return [
+                const storesText = Array.isArray(e.lojas) ? e.lojas.map(l => `${l.nomeFantasia}`).join(', ') : ``;
+                
+                const baseRow = [
                     storesText,
                     e.placa,
                     e.doca || 'N/A',
@@ -1662,469 +1790,19 @@
                     formatDateTime(e.dataEntrada),
                     formatDateTime(e.dataSaida),
                     e.paletes ? e.paletes.length : 0
-                ]
+                ];
+
+                if (currentUserProfile.role === 'admin') {
+                    baseRow.unshift(`${e.agenteNome || 'Desconhecido'} (${e.agenteLoja || 'N/A'})`);
+                }
+                return baseRow;
             });
 
             await generateGenericPdf(reportTitle, headers, rows, `relatorio_auditorias_${startDateStr || 'inicio'}_a_${endDateStr || 'fim'}`);
             loadingOverlay.classList.add('hidden');
         }
 
-        function handleAddMember() {
-            const nameInput = document.getElementById('provider-member-name');
-            const docInput = document.getElementById('provider-member-doc');
-            const name = nameInput.value.trim();
-            const doc = docInput.value.trim();
-
-            if (!name || !doc) {
-                showStatusMessage("Preencha o nome e o documento do integrante.", "error");
-                return;
-            }
-
-            currentTeamMembers.push({ name, doc });
-            renderTeamMembersList();
-            nameInput.value = '';
-            docInput.value = '';
-            nameInput.focus();
-        }
-
-        function renderTeamMembersList() {
-            const listEl = document.getElementById('team-members-list');
-            listEl.innerHTML = '';
-            if (currentTeamMembers.length > 0) {
-                const title = document.createElement('h4');
-                title.className = 'text-sm font-semibold text-slate-400 mb-2';
-                title.textContent = 'Integrantes Adicionados:';
-                listEl.appendChild(title);
-            }
-            currentTeamMembers.forEach((member, index) => {
-                const memberDiv = document.createElement('div');
-                memberDiv.className = 'flex justify-between items-center p-2 bg-slate-900/50 rounded-md';
-                memberDiv.innerHTML = `
-                    <div>
-                        <p class="font-medium text-slate-300">${member.name}</p>
-                        <p class="text-sm text-slate-500">${member.doc}</p>
-                    </div>
-                    <button type="button" class="text-red-500 hover:text-red-400 text-2xl leading-none" onclick="removeTeamMember(${index})">&times;</button>
-                `;
-                listEl.appendChild(memberDiv);
-            });
-        }
-        
-        window.removeTeamMember = (index) => {
-            currentTeamMembers.splice(index, 1);
-            renderTeamMembersList();
-        }
-
-        function handleAddEntryStore() {
-            const inputEl = document.getElementById('store-search-input');
-            const selectedStoreString = inputEl.dataset.selectedStore;
-
-            if (!selectedStoreString) {
-                showStatusMessage("Por favor, busque e selecione uma loja válida.", "error");
-                return;
-            }
-            const store = JSON.parse(selectedStoreString);
-            
-            if (currentEntryStores.some(s => s.id === store.id)) {
-                showStatusMessage("Essa loja já foi adicionada.", "error");
-                return;
-            }
-
-            currentEntryStores.push(store);
-            renderStoresList('entry');
-            inputEl.value = '';
-            delete inputEl.dataset.selectedStore;
-            inputEl.focus();
-        }
-
-        function handleAddProviderStore() {
-            const inputEl = document.getElementById('provider-store-search');
-            const selectedStoreString = inputEl.dataset.selectedStore;
-
-            if (!selectedStoreString) {
-                showStatusMessage("Por favor, busque e selecione uma loja válida.", "error");
-                return;
-            }
-            const store = JSON.parse(selectedStoreString);
-
-            if (currentProviderStores.some(s => s.id === store.id)) {
-                showStatusMessage("Essa loja já foi adicionada.", "error");
-                return;
-            }
-            
-            currentProviderStores.push(store);
-            renderStoresList('provider');
-            inputEl.value = '';
-            delete inputEl.dataset.selectedStore;
-            inputEl.focus();
-        }
-
-        function renderStoresList(type) {
-            const listId = type === 'entry' ? 'entry-stores-list' : 'provider-stores-list';
-            const storesArray = type === 'entry' ? currentEntryStores : currentProviderStores;
-            const removeFnName = type === 'entry' ? 'removeEntryStore' : 'removeProviderStore';
-            const listEl = document.getElementById(listId);
-            listEl.innerHTML = '';
-
-            if (storesArray.length > 0) {
-                const title = document.createElement('h4');
-                title.className = 'text-sm font-semibold text-slate-400 mb-2';
-                title.textContent = 'Lojas Adicionadas:';
-                listEl.appendChild(title);
-            }
-
-            storesArray.forEach((store, index) => {
-                const storeDiv = document.createElement('div');
-                storeDiv.className = 'flex justify-between items-center p-2 bg-slate-900/50 rounded-md';
-                storeDiv.innerHTML = `
-                    <div>
-                        <p class="font-medium text-slate-300">${store.nomeFantasia} (#${store.numero})</p>
-                        <p class="text-sm text-slate-500">${store.nomeReal}</p>
-                    </div>
-                    <button type="button" class="text-red-500 hover:text-red-400 text-2xl leading-none" onclick="${removeFnName}(${index})">&times;</button>
-                `;
-                listEl.appendChild(storeDiv);
-            });
-        }
-
-        window.removeEntryStore = (index) => {
-            currentEntryStores.splice(index, 1);
-            renderStoresList('entry');
-        }
-
-        window.removeProviderStore = (index) => {
-            currentProviderStores.splice(index, 1);
-            renderStoresList('provider');
-        }
-
-        async function handleAddProvider(e) {
-            e.preventDefault();
-            if (!currentUserId) return;
-            
-            if (currentProviderStores.length === 0) {
-                showStatusMessage("Adicione pelo menos uma loja de destino.", "error");
-                return;
-            }
-            if (currentTeamMembers.length === 0) {
-                showStatusMessage("Adicione pelo menos um integrante à equipe.", "error");
-                return;
-            }
-
-            const form = e.target;
-            const newProvider = {
-                company: form.querySelector('#provider-company').value,
-                team: currentTeamMembers,
-                description: form.querySelector('#provider-description').value,
-                plate: form.querySelector('#provider-plate').value.toUpperCase(),
-                lojas: currentProviderStores,
-                entryTime: new Date(),
-                exitTime: null,
-                status: 'ativo'
-            };
-
-            try {
-                await addDoc(collection(db, getCollectionPath('prestadores')), newProvider);
-                showStatusMessage("Serviço registrado com sucesso!");
-                form.reset();
-                currentTeamMembers = [];
-                currentProviderStores = [];
-                renderTeamMembersList();
-                renderStoresList('provider');
-                document.getElementById('provider-store-search').value = '';
-            } catch (error) {
-                console.error("Erro ao registrar serviço: ", error);
-                showStatusMessage("Erro ao registrar serviço. Tente novamente.", "error");
-            }
-        }
-
-        function listenForProviders() {
-            if (!currentUserId) return;
-            const providersCol = collection(db, getCollectionPath('prestadores'));
-            onSnapshot(providersCol, (snapshot) => {
-                const activeList = document.getElementById('active-providers-list');
-                
-                activeList.innerHTML = '';
-                providerHistoryCache = [];
-                const activeProviders = [];
-                const finishedProviders = [];
-
-                snapshot.docs.forEach(doc => {
-                    const provider = { id: doc.id, ...doc.data() };
-                    if (provider.status === 'ativo') {
-                        activeProviders.push(provider);
-                    } else {
-                        finishedProviders.push(provider);
-                    }
-                });
-
-                if (activeProviders.length === 0) {
-                    activeList.innerHTML = '<p class="text-slate-500">Nenhum prestador de serviço no local.</p>';
-                } else {
-                    activeProviders.sort((a,b) => b.entryTime.toDate() - a.entryTime.toDate()).forEach(renderActiveProvider);
-                }
-
-                providerHistoryCache = finishedProviders.sort((a,b) => {
-                    if(!a.exitTime || !b.exitTime) return 0;
-                    return b.exitTime.toDate() - a.exitTime.toDate()
-                });
-                providerHistoryCurrentPage = 1;
-                renderProviderHistoryPage();
-            });
-        }
-
-        function renderActiveProvider(provider) {
-            const listEl = document.getElementById('active-providers-list');
-            const div = document.createElement('div');
-            div.className = 'p-4 bg-slate-700/50 border border-slate-600 rounded-lg card';
-            
-            let teamHtml = '<li>Nenhum integrante informado</li>';
-            if (Array.isArray(provider.team) && provider.team.length > 0) {
-                teamHtml = provider.team.map(m => `<li class="text-slate-300">${m.name} (${m.doc})</li>`).join('');
-            }
-
-            let storesHtml = '<p class="text-sm text-slate-300">Nenhuma loja informada.</p>';
-            if (Array.isArray(provider.lojas) && provider.lojas.length > 0) {
-                 storesHtml = `<ul class="list-disc list-inside space-y-1">${provider.lojas.map(l => `<li class="text-sm text-slate-300">${l.nomeFantasia} (#${l.numero}) - ${l.nomeReal}</li>`).join('')}</ul>`;
-            } else if (provider.storeName) { // Compatibilidade
-                 storesHtml = `<p class="text-sm text-slate-300">${provider.storeName} - ${provider.storeRealName || ''}</p>`;
-            }
-
-            div.innerHTML = `
-                <div class="flex flex-wrap justify-between items-start gap-4">
-                    <div class="flex-grow min-w-0">
-                        <p class="font-bold text-lg text-cyan-400">${provider.company}</p>
-                        <div class="mt-2">
-                            <p class="font-semibold text-slate-400">Lojas de Destino:</p>
-                            ${storesHtml}
-                        </div>
-                        <p class="text-sm text-slate-300 break-words mt-2"><span class="font-semibold text-slate-400">Serviço:</span> ${provider.description}</p>
-                        <div class="text-sm text-slate-400 mt-2">
-                            <span class="font-semibold">Equipe:</span>
-                            <ul class="list-disc list-inside">${teamHtml}</ul>
-                        </div>
-                        ${provider.plate ? `<p class="text-sm text-slate-300 mt-2"><span class="font-semibold text-slate-400">Veículo:</span> ${provider.plate}</p>` : ''}
-                        <p class="text-sm text-slate-400 mt-2"><span class="font-semibold">Entrada:</span> ${formatDateTime(provider.entryTime)}</p>
-                    </div>
-                    <button class="bg-red-500/80 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-500 transform hover:scale-105 self-start" onclick="toggleProviderExitForm('${provider.id}')">
-                        Finalizar Serviço
-                    </button>
-                </div>
-                <div id="provider-exit-form-${provider.id}" class="hidden w-full mt-4 pt-4 border-t border-slate-700">
-                    <form class="flex flex-wrap items-end gap-4" onsubmit="event.preventDefault(); finalizeService('${provider.id}');">
-                        <div>
-                            <label for="provider-exit-time-${provider.id}" class="block text-sm font-medium text-slate-400">Horário de Saída</label>
-                            <input type="datetime-local" id="provider-exit-time-${provider.id}" required class="mt-1 w-full p-2 bg-slate-900/50 border border-slate-700 rounded-md text-slate-300">
-                        </div>
-                        <button type="submit" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-500 transform hover:scale-105">
-                            Confirmar Finalização
-                        </button>
-                    </form>
-                </div>
-            `;
-            listEl.appendChild(div);
-        }
-        
-        window.toggleProviderExitForm = (providerId) => {
-            const exitForm = document.getElementById(`provider-exit-form-${providerId}`);
-            const isHidden = exitForm.classList.contains('hidden');
-            document.querySelectorAll('[id^="provider-exit-form-"]').forEach(form => {
-                if(form.id !== `provider-exit-form-${providerId}`) form.classList.add('hidden');
-            });
-            if (isHidden) {
-                exitForm.classList.remove('hidden');
-                const now = new Date();
-                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-                document.getElementById(`provider-exit-time-${providerId}`).value = now.toISOString().slice(0, 16);
-            } else {
-                exitForm.classList.add('hidden');
-            }
-        };
-
-        window.finalizeService = async (providerId) => {
-            if (!currentUserId) return;
-            const timeInput = document.getElementById(`provider-exit-time-${providerId}`);
-            if (!timeInput.value) {
-                showStatusMessage("Por favor, informe o horário de saída.", "error");
-                return;
-            }
-            try {
-                const providerDoc = doc(db, getCollectionPath('prestadores'), providerId);
-                await updateDoc(providerDoc, {
-                    status: 'finalizado',
-                    exitTime: new Date(timeInput.value)
-                });
-                showStatusMessage('Serviço finalizado com sucesso.');
-            } catch (error) {
-                console.error("Erro ao finalizar serviço:", error);
-                showStatusMessage("Não foi possível finalizar o serviço.", "error");
-            }
-        };
-
-        function renderProviderHistoryPage() {
-            const listEl = document.getElementById('provider-history-list');
-            const placeholder = document.getElementById('provider-history-placeholder');
-            const searchTerm = document.getElementById('provider-history-search').value.toLowerCase();
-            listEl.innerHTML = '';
-            
-            const filteredHistory = providerHistoryCache.filter(p => {
-                const teamString = Array.isArray(p.team) ? p.team.map(m => `${m.name} ${m.doc}`).join(' ') : (p.team || '');
-                const storesText = Array.isArray(p.lojas) ? p.lojas.map(l => `${l.nomeFantasia} ${l.nomeReal} ${l.numero}`).join(' ') : `${p.storeName} ${p.storeRealName}`;
-
-                return (p.company && p.company.toLowerCase().includes(searchTerm)) ||
-                       (storesText.toLowerCase().includes(searchTerm)) ||
-                       (teamString.toLowerCase().includes(searchTerm));
-            });
-
-            if(filteredHistory.length === 0) {
-                placeholder.textContent = searchTerm ? 'Nenhum serviço encontrado para sua busca.' : 'Nenhum serviço no histórico.';
-                placeholder.classList.remove('hidden');
-                listEl.classList.add('hidden');
-                renderPaginationControls('provider-history', 0, providerHistoryCurrentPage, changeProviderHistoryPage);
-                return;
-            }
-            placeholder.classList.add('hidden');
-            listEl.classList.remove('hidden');
-
-            const startIndex = (providerHistoryCurrentPage - 1) * providerHistoryPerPage;
-            const endIndex = startIndex + providerHistoryPerPage;
-            const providersToShow = filteredHistory.slice(startIndex, endIndex);
-
-            providersToShow.forEach(renderProviderHistory);
-            renderPaginationControls('provider-history', Math.ceil(filteredHistory.length / providerHistoryPerPage), providerHistoryCurrentPage, changeProviderHistoryPage);
-        }
-
-        window.changeProviderHistoryPage = (page) => {
-            providerHistoryCurrentPage = page;
-            renderProviderHistoryPage();
-        }
-
-        function renderProviderHistory(provider) {
-            const listEl = document.getElementById('provider-history-list');
-            const card = document.createElement('div');
-            card.className = 'card bg-slate-800/50 border border-slate-700 rounded-lg p-4 flex flex-col justify-between space-y-3 fade-in';
-
-            let teamHtml = '<p class="text-sm text-slate-500">Nenhum integrante informado</p>';
-            if (Array.isArray(provider.team) && provider.team.length > 0) {
-                const THRESHOLD = 2;
-                if (provider.team.length > THRESHOLD) {
-                    const collapsedList = provider.team.slice(0, THRESHOLD).map(m => `<li class="text-sm text-slate-400">${m.name} (${m.doc})</li>`).join('');
-                    const collapsedView = `
-                        <ul class="list-disc list-inside pl-1">${collapsedList}</ul>
-                        <button class="text-xs text-cyan-400 mt-1 hover:underline" onclick="event.stopPropagation(); toggleTeamList('${provider.id}', true)">+ ${provider.team.length - THRESHOLD} outro(s)</button>
-                    `;
-                    const fullList = provider.team.map(m => `<li class="text-sm text-slate-400">${m.name} (${m.doc})</li>`).join('');
-                    const expandedView = `
-                        <ul class="list-disc list-inside pl-1">${fullList}</ul>
-                        <button class="text-xs text-cyan-400 mt-1 hover:underline" onclick="event.stopPropagation(); toggleTeamList('${provider.id}', false)">Ver menos</button>
-                    `;
-                    teamHtml = `
-                        <div id="history-team-collapsed-${provider.id}">${collapsedView}</div>
-                        <div id="history-team-expanded-${provider.id}" class="hidden">${expandedView}</div>
-                    `;
-                } else {
-                    const list = provider.team.map(m => `<li class="text-sm text-slate-400">${m.name} (${m.doc})</li>`).join('');
-                    teamHtml = `<ul class="list-disc list-inside pl-1">${list}</ul>`;
-                }
-            }
-
-            let storesHtml = '';
-            if (Array.isArray(provider.lojas) && provider.lojas.length > 0) {
-                 const THRESHOLD = 1;
-                 if (provider.lojas.length > THRESHOLD) {
-                    const collapsedView = `
-                        <div>
-                            <p class="font-semibold text-slate-200">${provider.lojas[0].nomeFantasia} (#${provider.lojas[0].numero})</p>
-                            <p class="text-sm text-slate-400">${provider.lojas[0].nomeReal || ''}</p>
-                            <button class="text-xs text-cyan-400 mt-1 hover:underline" onclick="event.stopPropagation(); toggleProviderStoreList('${provider.id}', true)">+ ${provider.lojas.length - THRESHOLD} outra(s) loja(s)</button>
-                        </div>
-                    `;
-                    const fullList = provider.lojas.map(l => `<li class="text-sm text-slate-300">${l.nomeFantasia} (#${l.numero}) - ${l.nomeReal}</li>`).join('');
-                    const expandedView = `
-                        <ul class="list-disc list-inside space-y-1">${fullList}</ul>
-                        <button class="text-xs text-cyan-400 mt-1 hover:underline" onclick="event.stopPropagation(); toggleProviderStoreList('${provider.id}', false)">Ver menos</button>
-                    `;
-                     storesHtml = `
-                        <div id="history-provider-stores-collapsed-${provider.id}">${collapsedView}</div>
-                        <div id="history-provider-stores-expanded-${provider.id}" class="hidden">${expandedView}</div>
-                    `;
-                } else {
-                    storesHtml = `<div>
-                        <p class="font-semibold text-slate-200">${provider.lojas[0].nomeFantasia} (#${provider.lojas[0].numero})</p>
-                        <p class="text-sm text-slate-400">${provider.lojas[0].nomeReal || ''}</p>
-                    </div>`;
-                }
-            } else if (provider.storeName) {
-                storesHtml = `<div>
-                    <p class="font-semibold text-slate-200">${provider.storeName}</p>
-                    <p class="text-sm text-slate-400">${provider.storeRealName || ''}</p>
-                </div>`;
-            }
-
-            card.innerHTML = `
-                <div>
-                    <div class="flex justify-between items-start">
-                        <span class="px-2 py-1 text-xs font-semibold text-green-200 bg-green-500/20 rounded-full">${provider.company}</span>
-                    </div>
-                    <div class="mt-3 space-y-2">
-                        ${storesHtml}
-                        <div>
-                            <p class="font-semibold text-slate-200">Equipe:</p>
-                            ${teamHtml}
-                        </div>
-                    </div>
-                    ${provider.description ? `
-                    <p class="text-sm text-slate-400 mt-2 pt-2 border-t border-slate-700/50 break-words"><strong class="text-slate-300">Serviço:</strong> ${provider.description}</p>
-                    ` : ''}
-                </div>
-                <div class="text-xs text-slate-400 border-t border-slate-700 pt-2 space-y-1">
-                    <p><span class="font-semibold text-slate-300">Entrada:</span> ${formatDateTime(provider.entryTime)}</p>
-                    <p><span class="font-semibold text-slate-300">Saída:</span> ${formatDateTime(provider.exitTime)}</p>
-                </div>
-            `;
-            listEl.appendChild(card);
-        }
-
-        async function downloadProvidersPDF() {
-            loadingOverlay.classList.remove('hidden');
-            loadingText.textContent = 'Gerando Relatório PDF...';
-
-            let filteredHistory = providerHistoryCache;
-            const startDateStr = document.getElementById('provider-filter-start-date').value;
-            const endDateStr = document.getElementById('provider-filter-end-date').value;
-
-            if (startDateStr && endDateStr) {
-                const startDate = new Date(startDateStr + 'T00:00:00');
-                const endDate = new Date(endDateStr + 'T23:59:59');
-                if (startDate > endDate) {
-                    showStatusMessage("A data de início não pode ser maior que a data de fim.", "error");
-                    loadingOverlay.classList.add('hidden');
-                    return;
-                }
-                filteredHistory = providerHistoryCache.filter(p => {
-                    if (!p.exitTime) return false;
-                    const exitDate = p.exitTime.toDate();
-                    return exitDate >= startDate && exitDate <= endDate;
-                });
-            }
-
-            if (filteredHistory.length === 0) {
-                showStatusMessage("Nenhum histórico de serviço para exportar.", "error");
-                loadingOverlay.classList.add('hidden');
-                return;
-            }
-
-            const reportTitle = "Relatório de Prestadores de Serviço";
-            const headers = ["Empresa", "Lojas", "Equipe", "Descrição", "Entrada", "Saída"];
-            const rows = filteredHistory.map(p => {
-                const team = Array.isArray(p.team) ? p.team.map(m => `${m.name} (${m.doc})`).join(', ') : 'N/A';
-                const storesText = Array.isArray(p.lojas) ? p.lojas.map(l => `${l.nomeFantasia} (#${l.numero})`).join(', ') : p.storeName;
-                return [p.company, storesText, team, p.description, formatDateTime(p.entryTime), formatDateTime(p.exitTime)];
-            });
-            
-            await generateGenericPdf(reportTitle, headers, rows, `relatorio_servicos_${startDateStr}_a_${endDateStr}`);
-            loadingOverlay.classList.add('hidden');
-        }
-
+        // --- SISTEMA DE RELATÓRIOS E OCORRÊNCIAS ---
         const handleReportFileSelect = (event) => {
             const previewContainer = document.getElementById('report-image-previews');
             const files = Array.from(event.target.files);
@@ -2160,15 +1838,14 @@
                         ctx.drawImage(img, 0, 0, width, height);
                         
                         const compressedImgData = canvas.toDataURL('image/jpeg', 0.7);
-                        
                         currentReportImages.push(compressedImgData);
 
                         const imgPreviewWrapper = document.createElement('div');
                         imgPreviewWrapper.className = 'relative group aspect-square';
                         imgPreviewWrapper.innerHTML = `
                             <img src="${compressedImgData}" class="w-full h-full object-cover rounded-lg border border-slate-700">
-                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 flex items-center justify-center rounded-lg">
-                                <button type="button" class="remove-report-photo-btn text-white opacity-0 group-hover:opacity-100 p-2 bg-red-600 rounded-full">
+                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 flex items-center justify-center rounded-lg transition-all">
+                                <button type="button" class="remove-report-photo-btn text-white opacity-0 group-hover:opacity-100 p-2 bg-red-600 rounded-full transform hover:scale-110">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                                 </button>
                             </div>
@@ -2195,6 +1872,9 @@
             if (!currentUserId) return;
             const form = e.target;
             const newReport = {
+                agenteId: currentUserId,
+                agenteNome: currentUserProfile.nome,
+                agenteLoja: currentUserProfile.store ? currentUserProfile.store.nomeFantasia : 'N/A',
                 title: form.querySelector('#report-title').value,
                 content: form.querySelector('#report-content').value,
                 images: currentReportImages,
@@ -2202,23 +1882,28 @@
             };
 
             try {
-                await addDoc(collection(db, getCollectionPath('relatorios')), newReport);
+                await addDoc(collection(db, getPublicPath('relatorios')), newReport);
                 showStatusMessage("Relatório salvo com sucesso!");
                 form.reset();
                 currentReportImages = [];
                 document.getElementById('report-image-previews').innerHTML = '';
             } catch (error) {
-                console.error("Erro ao salvar relatório: ", error);
                 showStatusMessage("Erro ao salvar o relatório. Tente novamente.", "error");
             }
         }
 
         function listenForReports() {
             if (!currentUserId) return;
-            const reportsCol = collection(db, getCollectionPath('relatorios'));
+            const reportsCol = collection(db, getPublicPath('relatorios'));
             onSnapshot(reportsCol, (snapshot) => {
-                reportsCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-                                         .sort((a,b) => b.createdAt.toDate() - a.createdAt.toDate());
+                reportsCache = [];
+                snapshot.docs.forEach(doc => {
+                    const rep = { id: doc.id, ...doc.data() };
+                    if (currentUserProfile.role === 'admin' || rep.agenteId === currentUserId) {
+                        reportsCache.push(rep);
+                    }
+                });
+                reportsCache.sort((a,b) => b.createdAt.toDate() - a.createdAt.toDate());
                 reportsCurrentPage = 1;
                 renderReportsPage();
             });
@@ -2226,6 +1911,7 @@
         
         function renderReportsPage() {
             const listEl = document.getElementById('reports-list');
+            if(!listEl) return;
             listEl.innerHTML = '';
 
             if (reportsCache.length === 0) {
@@ -2240,7 +1926,7 @@
 
             reportsToShow.forEach(report => {
                 const div = document.createElement('div');
-                div.className = 'p-4 bg-slate-900/50 border border-slate-700 rounded-lg flex flex-col gap-4';
+                div.className = 'p-4 bg-slate-900/50 border border-slate-700 rounded-lg flex flex-col gap-4 fade-in';
                 const isLong = report.content.length > 150;
                 const truncatedContent = isLong ? report.content.substring(0, 150) + '...' : report.content;
 
@@ -2252,18 +1938,21 @@
                     });
                     imagesHtml += '</div>';
                 }
+                
+                const showAgent = currentUserProfile.role === 'admin' ? `<p class="text-sm font-semibold text-cyan-300 mt-1">Reportado por: ${report.agenteNome} (${report.agenteLoja || 'N/A'})</p>` : '';
 
                 div.innerHTML = `
                     <div>
                         <div class="flex justify-between items-start">
                             <div class="min-w-0 flex-1">
                                 <h4 class="font-bold text-lg text-slate-200">${report.title}</h4>
-                                <p class="text-sm text-slate-400 mb-2">${formatDateTime(report.createdAt)}</p>
-                                <div id="report-content-${report.id}">
+                                <p class="text-sm text-slate-400 mb-1">${formatDateTime(report.createdAt)}</p>
+                                ${showAgent}
+                                <div id="report-content-${report.id}" class="mt-2">
                                     <p class="text-slate-300 whitespace-pre-wrap break-words">${truncatedContent}</p>
                                     ${isLong ? `<button class="text-cyan-400 hover:underline text-sm mt-2" onclick="toggleReportContent('${report.id}', true)">Ver mais</button>` : ''}
                                 </div>
-                                <div id="report-full-content-${report.id}" class="hidden">
+                                <div id="report-full-content-${report.id}" class="hidden mt-2">
                                     <p class="text-slate-300 whitespace-pre-wrap break-words">${report.content}</p>
                                     <button class="text-xs text-cyan-400 hover:underline text-sm mt-2" onclick="toggleReportContent('${report.id}', false)">Ver menos</button>
                                 </div>
@@ -2273,7 +1962,7 @@
                         </div>
                     </div>
                     <div class="border-t border-slate-700 pt-3 flex justify-end">
-                         <button class="bg-green-600/80 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 text-sm" onclick="generateReportPdf('${report.id}')">
+                         <button class="bg-green-600/80 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 text-sm transform hover:scale-105" onclick="generateReportPdf('${report.id}')">
                             Exportar PDF
                         </button>
                     </div>
@@ -2301,55 +1990,78 @@
             }
         };
 
-        window.toggleTeamList = (providerId, showExpanded) => {
-            const collapsedDiv = document.getElementById(`history-team-collapsed-${providerId}`);
-            const expandedDiv = document.getElementById(`history-team-expanded-${providerId}`);
-            if (showExpanded) {
-                collapsedDiv.classList.add('hidden');
-                expandedDiv.classList.remove('hidden');
-            } else {
-                collapsedDiv.classList.remove('hidden');
-                expandedDiv.classList.add('hidden');
-            }
-        };
-
         window.deleteReport = async (reportId) => {
             if (!currentUserId) return;
             if (confirm('Tem certeza que deseja excluir este relatório?')) {
                 try {
-                    await deleteDoc(doc(db, getCollectionPath('relatorios'), reportId));
+                    await deleteDoc(doc(db, getPublicPath('relatorios'), reportId));
                     showStatusMessage('Relatório excluído com sucesso.');
                 } catch (error) {
-                    console.error("Erro ao excluir relatório:", error);
                     showStatusMessage("Não foi possível excluir o relatório.", "error");
                 }
             }
         };
 
-        window.toggleStoreList = (entryId, showExpanded) => {
-            const collapsedDiv = document.getElementById(`history-stores-collapsed-${entryId}`);
-            const expandedDiv = document.getElementById(`history-stores-expanded-${entryId}`);
-            if (showExpanded) {
-                collapsedDiv.classList.add('hidden');
-                expandedDiv.classList.remove('hidden');
-            } else {
-                collapsedDiv.classList.remove('hidden');
-                expandedDiv.classList.add('hidden');
+        window.generateReportPdf = async (reportId) => {
+            loadingOverlay.classList.remove('hidden');
+            loadingText.textContent = 'Gerando PDF do Relatório...';
+
+            const report = reportsCache.find(r => r.id === reportId);
+            if (!report) {
+                showStatusMessage("Relatório não encontrado.", "error");
+                loadingOverlay.classList.add('hidden');
+                return;
             }
-        };
-        
-        window.toggleProviderStoreList = (providerId, showExpanded) => {
-            const collapsedDiv = document.getElementById(`history-provider-stores-collapsed-${providerId}`);
-            const expandedDiv = document.getElementById(`history-provider-stores-expanded-${providerId}`);
-            if (showExpanded) {
-                collapsedDiv.classList.add('hidden');
-                expandedDiv.classList.remove('hidden');
-            } else {
-                collapsedDiv.classList.remove('hidden');
-                expandedDiv.classList.add('hidden');
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const margin = 15;
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const usableWidth = pageWidth - 2 * margin;
+
+            doc.setFontSize(20);
+            doc.setFont('helvetica', 'bold');
+            doc.text(report.title, margin, 20);
+
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(100);
+            doc.text(`Data: ${formatDateTime(report.createdAt)} | Agente: ${report.agenteNome}`, margin, 28);
+
+            doc.setFontSize(12);
+            doc.setTextColor(0);
+            const splitContent = doc.splitTextToSize(report.content, usableWidth);
+            let yPosition = 40;
+            doc.text(splitContent, margin, yPosition);
+            yPosition += (splitContent.length * 7) + 10; 
+
+            if (report.images && report.images.length > 0) {
+                for (const [index, imgSrc] of report.images.entries()) {
+                    if (yPosition > pageHeight - margin - 60) {
+                        doc.addPage();
+                        yPosition = margin;
+                    }
+
+                    try {
+                        doc.text(`Imagem ${index + 1}:`, margin, yPosition);
+                        yPosition += 5; 
+                        const imgHeight = (usableWidth * 9) / 16;
+                        doc.addImage(imgSrc, 'JPEG', margin, yPosition, usableWidth, imgHeight); 
+                        yPosition += imgHeight + 10; 
+                    } catch (e) {
+                        doc.text(`[Erro ao carregar imagem ${index + 1}]`, margin, yPosition);
+                        yPosition += 15;
+                    }
+                }
             }
+
+            doc.save(`relatorio_${report.title.replace(/\s+/g, '_')}_${report.id.substring(0, 6)}.pdf`);
+            loadingOverlay.classList.add('hidden');
         };
 
+        // --- DASHBOARD ---
         function setDefaultDateFilters() {
             const endDateEl = document.getElementById('dash-end-date');
             const startDateEl = document.getElementById('dash-start-date');
@@ -2380,17 +2092,12 @@
                 const exitDate = entry.dataSaida.toDate();
                 return exitDate >= startDate && exitDate <= endDate;
             });
-            const filteredProviderData = providerHistoryCache.filter(p => {
-                if (!p.exitTime) return false;
-                const exitDate = p.exitTime.toDate();
-                return exitDate >= startDate && exitDate <= endDate;
-            });
 
             const chartsContainer = document.getElementById('charts-container');
             const noDataMessage = document.getElementById('no-data-message');
             const kpiContainer = document.getElementById('kpi-container');
 
-            if (filteredVehicleData.length === 0 && filteredProviderData.length === 0) {
+            if (filteredVehicleData.length === 0) {
                 chartsContainer.classList.add('hidden');
                 kpiContainer.classList.add('hidden');
                 noDataMessage.classList.remove('hidden');
@@ -2403,18 +2110,17 @@
             kpiContainer.classList.remove('hidden');
             noDataMessage.classList.add('hidden');
 
-            updateKPIs(filteredVehicleData, filteredProviderData);
+            updateKPIs(filteredVehicleData);
             
-            renderCombinedEntriesOverTime(filteredVehicleData, filteredProviderData);
-            renderActivityByHour(filteredVehicleData, filteredProviderData);
-            renderActivityByWeekday(filteredVehicleData, filteredProviderData);
-            renderTopNChart('topStoresChart', filteredVehicleData, 'lojas', 'Top 5 Lojas (Carregamento)');
-            renderTopNChart('topCompaniesChart', filteredProviderData, 'company', 'Top 5 Empresas de Serviço');
+            renderCombinedEntriesOverTime(filteredVehicleData);
+            renderActivityByHour(filteredVehicleData);
+            renderActivityByWeekday(filteredVehicleData);
+            renderTopNChart('topStoresChart', filteredVehicleData, 'lojas', 'Top 5 Lojas (Destino)');
+            renderTopNChart('topAgentsChart', filteredVehicleData, 'agenteNome', 'Top 5 Agentes (Auditorias)');
         }
 
-        function updateKPIs(vehicleData, providerData) {
+        function updateKPIs(vehicleData) {
             document.getElementById('kpi-total-entries').textContent = vehicleData.length;
-            document.getElementById('kpi-total-services').textContent = providerData.length;
 
             const totalDwellTime = vehicleData.reduce((acc, entry) => {
                 if (entry.dataEntrada && entry.dataSaida) {
@@ -2450,27 +2156,19 @@
                 .map(([label, count]) => ({ label, count }));
         }
 
-        function renderCombinedEntriesOverTime(vehicleData, providerData) {
+        function renderCombinedEntriesOverTime(vehicleData) {
             const combinedData = {};
             vehicleData.forEach(entry => {
                 if(entry.dataSaida) {
                     const day = entry.dataSaida.toDate().toISOString().split('T')[0];
-                    if(!combinedData[day]) combinedData[day] = { vehicles: 0, providers: 0 };
+                    if(!combinedData[day]) combinedData[day] = { vehicles: 0 };
                     combinedData[day].vehicles++;
-                }
-            });
-            providerData.forEach(entry => {
-                if(entry.exitTime) {
-                    const day = entry.exitTime.toDate().toISOString().split('T')[0];
-                    if(!combinedData[day]) combinedData[day] = { vehicles: 0, providers: 0 };
-                    combinedData[day].providers++;
                 }
             });
 
             const sortedDays = Object.keys(combinedData).sort();
             const labels = sortedDays.map(day => new Date(day + 'T00:00:00').toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'}));
             const vehicleCounts = sortedDays.map(day => combinedData[day].vehicles);
-            const providerCounts = sortedDays.map(day => combinedData[day].providers);
 
             const config = {
                 type: 'line',
@@ -2478,22 +2176,13 @@
                     labels: labels,
                     datasets: [
                         { 
-                            label: 'Auditorias', 
+                            label: 'Auditorias Concluídas', 
                             data: vehicleCounts, 
                             borderColor: '#06b6d4',
                             backgroundColor: 'rgba(6, 182, 212, 0.15)',
                             fill: true, tension: 0.4,
                             pointBackgroundColor: '#06b6d4', pointBorderColor: '#0f172a',
                             pointHoverBackgroundColor: '#fff', pointHoverBorderColor: '#06b6d4'
-                        },
-                        { 
-                            label: 'Serviços', 
-                            data: providerCounts, 
-                            borderColor: '#22c55e',
-                            backgroundColor: 'rgba(34, 197, 94, 0.15)',
-                            fill: true, tension: 0.4,
-                            pointBackgroundColor: '#22c55e', pointBorderColor: '#0f172a',
-                            pointHoverBackgroundColor: '#fff', pointHoverBorderColor: '#22c55e'
                         }
                     ]
                 },
@@ -2507,10 +2196,9 @@
             renderChart('entriesOverTimeChart', config);
         }
 
-        function renderActivityByHour(vehicleData, providerData) {
+        function renderActivityByHour(vehicleData) {
             const hours = Array(24).fill(0);
             vehicleData.forEach(e => hours[e.dataEntrada.toDate().getHours()]++);
-            providerData.forEach(p => hours[p.entryTime.toDate().getHours()]++);
             
             const ctx = document.getElementById('activityByHourChart').getContext('2d');
             const gradient = ctx.createLinearGradient(0, 0, 0, 320);
@@ -2522,7 +2210,7 @@
                 data: {
                     labels: Array.from({length: 24}, (_, i) => `${String(i).padStart(2, '0')}h`),
                     datasets: [{
-                        label: 'Total de Entradas por Hora',
+                        label: 'Auditorias Iniciadas por Hora',
                         data: hours,
                         backgroundColor: gradient,
                         borderRadius: 4
@@ -2538,11 +2226,10 @@
             renderChart('activityByHourChart', config);
         }
 
-        function renderActivityByWeekday(vehicleData, providerData) {
+        function renderActivityByWeekday(vehicleData) {
             const weekdays = Array(7).fill(0);
             const weekdayLabels = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
             vehicleData.forEach(e => weekdays[e.dataEntrada.toDate().getDay()]++);
-            providerData.forEach(p => weekdays[p.entryTime.toDate().getDay()]++);
 
             const ctx = document.getElementById('activityByWeekdayChart').getContext('2d');
             const gradient = ctx.createLinearGradient(0, 0, 0, 320);
@@ -2554,7 +2241,7 @@
                 data: {
                     labels: weekdayLabels,
                     datasets: [{
-                        label: 'Total de Entradas por Dia da Semana',
+                        label: 'Auditorias por Dia da Semana',
                         data: weekdays,
                         backgroundColor: gradient,
                         borderRadius: 4
@@ -2577,7 +2264,7 @@
             
             const colors = {
                 'topStoresChart': ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'],
-                'topCompaniesChart': ['#15803d', '#16a34a', '#22c55e', '#4ade80', '#86efac']
+                'topAgentsChart': ['#15803d', '#16a34a', '#22c55e', '#4ade80', '#86efac']
             };
 
             const config = {
@@ -2696,81 +2383,13 @@
                 body: rows,
                 startY: 35,
                 theme: 'grid',
-                headStyles: { fillColor: [14, 116, 144] }, // tom de ciano escuro
+                headStyles: { fillColor: [14, 116, 144] }, 
                 styles: { fontSize: 8 },
                 margin: { top: 30 }
             });
 
             doc.save(`${filename}.pdf`);
         }
-        
-        window.generateReportPdf = async (reportId) => {
-            loadingOverlay.classList.remove('hidden');
-            loadingText.textContent = 'Gerando PDF do Relatório...';
-
-            const report = reportsCache.find(r => r.id === reportId);
-            if (!report) {
-                showStatusMessage("Relatório não encontrado.", "error");
-                loadingOverlay.classList.add('hidden');
-                return;
-            }
-
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-
-            const margin = 15;
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const pageHeight = doc.internal.pageSize.getHeight();
-            const usableWidth = pageWidth - 2 * margin;
-
-            doc.setFontSize(20);
-            doc.setFont('helvetica', 'bold');
-            doc.text(report.title, margin, 20);
-
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(100);
-            doc.text(`Data: ${formatDateTime(report.createdAt)}`, margin, 28);
-
-            doc.setFontSize(12);
-            doc.setTextColor(0);
-            const splitContent = doc.splitTextToSize(report.content, usableWidth);
-            let yPosition = 40;
-            doc.text(splitContent, margin, yPosition);
-            yPosition += (splitContent.length * 7) + 10; 
-
-            if (report.images && report.images.length > 0) {
-                for (const [index, imgSrc] of report.images.entries()) {
-                    // Verifica se há espaço na página atual para a imagem
-                    // A altura aproximada da imagem é 60mm, com margem.
-                    if (yPosition > pageHeight - margin - 60) {
-                        doc.addPage();
-                        yPosition = margin;
-                    }
-
-                    try {
-                        doc.text(`Imagem ${index + 1}:`, margin, yPosition);
-                        yPosition += 5; // Espaço entre o texto e a imagem
-                        
-                        // Adiciona a imagem ao PDF. As imagens estão em formato base64.
-                        // A imagem é redimensionada para a largura útil da página, mantendo uma proporção 16:9.
-                        const imgHeight = (usableWidth * 9) / 16;
-                        doc.addImage(imgSrc, 'JPEG', margin, yPosition, usableWidth, imgHeight); 
-                        yPosition += imgHeight + 10; // Atualiza a posição Y para o próximo elemento
-                    } catch (e) {
-                        console.error("Erro ao adicionar imagem ao PDF:", e);
-                        doc.text(`[Erro ao carregar imagem ${index + 1}]`, margin, yPosition);
-                        yPosition += 15;
-                    }
-                }
-            }
-
-            // Salva o arquivo PDF
-            doc.save(`relatorio_${report.title.replace(/\s+/g, '_')}_${report.id.substring(0, 6)}.pdf`);
-            
-            // Esconde a tela de carregamento
-            loadingOverlay.classList.add('hidden');
-        };
 
     </script>
 </body>

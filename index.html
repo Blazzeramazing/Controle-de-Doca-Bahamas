@@ -566,6 +566,18 @@
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'controle-doca-cd-prevencao-v5';
         const getPublicPath = (col) => `artifacts/${appId}/public/data/${col}`;
+        
+        async function hashString(str) {
+            if (!str) return '';
+            const encoder = new TextEncoder();
+            const data = encoder.encode(str);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        const SUPERVISOR_CODE_HASH = 'ab16e14c044877d0106d102e66002f4c7ac0ceb011a2ee2781f380d326846efc'; // PREV2026
+
         const firebaseApp = initializeApp(firebaseConfig);
         const db = getFirestore(firebaseApp);
         const auth = getAuth(firebaseApp);
@@ -704,8 +716,9 @@
             const role = document.getElementById('profile-role').value;
             const adminCode = document.getElementById('profile-admin-code').value;
             const storeId = document.getElementById('profile-store').value;
+            const hashedAdminCode = await hashString(adminCode);
 
-            if (role === 'admin' && adminCode !== 'PREV2026') {
+            if (role === 'admin' && hashedAdminCode !== SUPERVISOR_CODE_HASH) {
                 showStatusMessage('Código de supervisor inválido.', 'error');
                 loadingOverlay.classList.add('hidden');
                 return;
